@@ -30,7 +30,7 @@
     "expo-web-browser": "~13.0.3",
     "iconsax-react-native": "^0.0.8",
     "install": "^0.13.0",
-    "nativewind": "next",
+    "nativewind": "^4.1.19",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.5",

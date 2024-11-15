@@ -48,6 +48,8 @@ const Home = () => {
     onScroll: (e) => {
       x.value = e.contentOffset.x;
     },
+    // onMomentumEnd: (e) => {
+    // }
   });
 
   useEffect(() => {
@@ -114,6 +116,7 @@ const Home = () => {
             return <AnimeBannerText item={item} index={index} x={x} />;
           }}
         />
+
         <HomeButtons />
       </View>
     </SafeAreaView>
