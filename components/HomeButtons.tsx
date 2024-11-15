@@ -4,7 +4,7 @@ import { Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 const HomeButtons = () => {
   return (
-    <View className="flex-row justify-evenly gap-5 px-16">
+    <View className="-mt-3 flex-row justify-evenly gap-5 px-16">
       {/* Play Trailer Button */}
       <Pressable
         className="flex-1 flex-row items-center justify-center gap-2 space-x-2 rounded-3xl bg-lime-300 p-3"
@@ -13,7 +13,7 @@ const HomeButtons = () => {
           alert('Play Trailer');
         }}>
         <Play size={24} color="#000" variant="Bold" />
-        <Text className="font-medium text-black">Play Trailer</Text>
+        <Text className="text-lg font-semibold text-black">Play Trailer</Text>
       </Pressable>
 
       {/* Add to My List Button */}
@@ -23,8 +23,8 @@ const HomeButtons = () => {
           // Add to the user's list (e.g., update state or call an API)
           alert('Added to My List');
         }}>
-        <Add size={24} color="#FFF" />
-        <Text className="font-medium text-white">My List</Text>
+        <Add size={24} variant="Broken" color="#FFF" />
+        <Text className="text-lg font-semibold text-white">My List</Text>
       </TouchableOpacity>
     </View>
   );

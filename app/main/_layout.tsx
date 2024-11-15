@@ -1,4 +1,4 @@
-import { useTheme, type ParamListBase, type TabNavigationState } from '@react-navigation/native';
+import { type ParamListBase, type TabNavigationState } from '@react-navigation/native';
 import { withLayoutContext } from 'expo-router';
 import { Discover, Home2, Profile, SearchNormal1 } from 'iconsax-react-native';
 import React from 'react';
@@ -8,6 +8,9 @@ import type {
   MaterialBottomTabNavigationOptions,
 } from 'react-native-paper/react-navigation';
 import { createMaterialBottomTabNavigator } from 'react-native-paper/react-navigation';
+
+import { darkTheme } from '~/constants/Colors';
+import { hp, wp } from '~/helpers/common';
 
 const { Navigator } = createMaterialBottomTabNavigator();
 
@@ -20,7 +23,11 @@ export const MaterialBottomTabs = withLayoutContext<
 
 const BottomLayout = () => {
   return (
-    <MaterialBottomTabs theme={useTheme()} barStyle={styles.tabBarStyle} keyboardHidesNavigationBar>
+    <MaterialBottomTabs
+      barStyle={styles.tabBarStyle}
+      compact
+      theme={darkTheme}
+      keyboardHidesNavigationBar>
       <MaterialBottomTabs.Screen
         name="Home"
         options={{
@@ -84,17 +91,18 @@ const styles = StyleSheet.create({
   tabBarStyle: {
     borderRadius: 30,
     position: 'absolute',
-    bottom: 24,
+    bottom: hp(4),
     overflow: 'hidden',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    borderBottomLeftRadius: 30,
-    elevation: 3,
-    left: 16,
-    right: 16,
-    borderBottomRightRadius: 30,
-    shadowOffset: { width: 0, height: 20 },
+    borderTopLeftRadius: wp(6),
+    borderTopRightRadius: wp(6),
+    borderBottomLeftRadius: wp(6),
+    borderBottomRightRadius: wp(6),
+    elevation: 2,
+    left: wp(6),
+    right: wp(6),
+    shadowOffset: { width: 0, height: 30 },
     shadowOpacity: 0.2,
-    shadowRadius: 10,
+    fontWeight: 'bold',
+    shadowRadius: 20,
   },
 });

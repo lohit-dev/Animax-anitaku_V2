@@ -84,7 +84,7 @@ export const darkTheme = {
     elevation: {
       level0: 'transparent',
       level1: 'rgb(30, 38, 33)',
-      level2: 'rgb(33, 43, 36)',
+      level2: '#12140e',
       level3: 'rgb(36, 49, 40)',
       level4: 'rgb(37, 51, 42)',
       level5: 'rgb(39, 55, 44)',
