@@ -22,6 +22,7 @@ export default function RootLayout() {
     const setNav = async () => {
       try {
         await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBackgroundColorAsync('black');
         await NavigationBar.setBehaviorAsync('overlay-swipe');
       } catch (error) {
         console.error('Error setting navigation bar:', error);

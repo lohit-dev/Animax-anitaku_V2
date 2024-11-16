@@ -1,21 +1,53 @@
-interface Episode {
+export type Anime = {
   id: string;
-  number: number | string;
-  url: string;
-}
+  name: string;
+  poster: string;
+  type?: string;
+  episodes?: {
+    sub?: number | null;
+    dub?: number | null;
+  };
+  rank?: number;
+  jname: string;
+  description?: string;
+  otherInfo?: string[];
+  duration?: string;
+  rating?: string | null;
+};
 
-export interface Anime {
+type TrendingAnime = {
+  rank: number;
   id: string;
-  title: string;
-  url: string;
+  name: string;
+  jname: string;
+  poster: string;
+};
+
+export type Top10Animes = {
+  today: Anime[];
+  week: Anime[];
+  month: Anime[];
+};
+
+export type AnimeData = {
+  spotlightAnimes: Anime[];
+  trendingAnimes: TrendingAnime[];
+  latestEpisodeAnimes: Anime[];
+  top10Animes: Top10Animes;
+  topAiringAnimes: (Anime & {
+    jname: string;
+  })[];
+  topUpcomingAnimes: (Anime & {
+    duration: string;
+    rating: string | null;
+  })[];
+  mostPopularAnimes: Anime[];
+  mostFavoriteAnimes: Anime[];
+  latestCompletedAnimes: Anime[];
   genres: string[];
-  totalEpisodes: number;
-  image: string;
-  releaseDate: string;
-  description: string;
-  subOrDub: 'sub' | 'dub';
-  type: string;
-  status: 'Completed' | 'Ongoing';
-  otherName: string;
-  episodes: Episode[];
-}
+};
+
+export type ApiResponse = {
+  success: boolean;
+  data: AnimeData;
+};

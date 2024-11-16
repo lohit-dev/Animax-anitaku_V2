@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 
+import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
 import { Anime } from '~/types';
 
@@ -16,31 +17,10 @@ type AnimeBannerTextProps = {
   x: SharedValue<number>;
 };
 
-const getFormattedTitle = (title: string) => {
-  const words = title.split(/(\s+|\W)/).filter(Boolean);
-  return words.map((word, index) => {
-    if (word.match(/[a-zA-Z]/)) {
-      const firstLetter = word.charAt(0);
-      const restOfWord = word.slice(1);
-
-      return (
-        <React.Fragment key={index}>
-          <Text className="font-bold text-lime-300">{firstLetter}</Text>
-          {restOfWord}
-        </React.Fragment>
-      );
-    }
-
-    return (
-      <React.Fragment key={index}>
-        <Text className="text-white">{word}</Text>
-      </React.Fragment>
-    );
-  });
-};
-
 const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
   const { width } = useWindowDimensions();
+
+  const titleHeight = item.jname.length > 22 ? hp(12) : hp(9);
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateYAnim = interpolate(
@@ -66,18 +46,21 @@ const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <View
-        className="absolute bottom-0 left-0 right-0 object-contain text-center text-5xl text-white"
-        style={styles.title}>
-        <Text className="text-center text-5xl font-bold text-white">
-          {getFormattedTitle(item.title)}
+        className="absolute bottom-1 left-0 right-0 object-contain px-3 text-center text-5xl text-white"
+        style={[styles.title, { height: titleHeight }]}>
+        <Text
+          className="text-center text-4xl font-bold tracking-tight text-white"
+          numberOfLines={2}
+          ellipsizeMode="tail">
+          {getFormattedTitle(item.jname)}
         </Text>
         <View className="flex-row flex-wrap items-center justify-center px-14">
-          <Text className="font-bold text-lime-300">{item.releaseDate}</Text>
-          <Text className="text-xl text-lime-300"> • </Text>
-          {item.genres.map((genre, i) => (
+          {/* <Text className="font-bold text-lime-300">{item.duration}</Text>
+          <Text className="text-xl text-lime-300"> • </Text> */}
+          {item?.otherInfo?.map((info, i) => (
             <React.Fragment key={i}>
-              <Text className="text-sm font-semibold text-gray-300">{genre}</Text>
-              {i < item.genres.length - 1 && <Text className="text-2xl text-lime-300"> • </Text>}
+              <Text className="text-sm font-semibold text-gray-300">{info}</Text>
+              {i < info.length - 1 && <Text className="text-2xl text-lime-300"> • </Text>}
             </React.Fragment>
           ))}
         </View>
@@ -91,7 +74,7 @@ export default AnimeBannerText;
 const styles = StyleSheet.create({
   container: {
     width: wp(100),
-    height: hp(56),
+    height: hp(52),
   },
   title: {
     height: 100,

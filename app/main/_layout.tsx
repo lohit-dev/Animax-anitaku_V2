@@ -38,8 +38,6 @@ const BottomLayout = () => {
             ) : (
               <Home2 size={24} color={color} />
             ),
-
-          // <MaterialCommunityIcons name="home" size={24} color={color} />
         }}
       />
       <MaterialBottomTabs.Screen
@@ -48,7 +46,6 @@ const BottomLayout = () => {
           tabBarLabel: 'Discover',
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              // <MaterialCommunityIcons name="compass" size={24} color={color} />
               <Discover size="24" color={color} variant="Broken" />
             ) : (
               <Discover size="24" color={color} />
@@ -60,7 +57,6 @@ const BottomLayout = () => {
         options={{
           tabBarLabel: 'My List',
           tabBarIcon: ({ color, focused }) =>
-            // <MaterialIcons name="library-books" size={24} color={color} />
             focused ? (
               <SearchNormal1 size="24" variant="Broken" color={color} />
             ) : (
@@ -73,7 +69,6 @@ const BottomLayout = () => {
         options={{
           tabBarLabel: 'Settings',
           tabBarIcon: ({ color, focused }) =>
-            // <MaterialIcons name="settings" size={24} color={color} />
             focused ? (
               <Profile size="24" variant="Broken" color={color} />
             ) : (
@@ -88,10 +83,13 @@ const BottomLayout = () => {
 export default BottomLayout;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   tabBarStyle: {
     borderRadius: 30,
     position: 'absolute',
-    bottom: hp(4),
+    bottom: hp(3),
     overflow: 'hidden',
     borderTopLeftRadius: wp(6),
     borderTopRightRadius: wp(6),

@@ -4,18 +4,6 @@ module.exports = {
   singleQuote: true,
   bracketSameLine: true,
   trailingComma: 'es5',
-
-  plugins: [
-    require.resolve('prettier-plugin-tailwindcss'),
-    {
-      'prettier/prettier': [
-        'error',
-        {
-          singleQuote: true,
-          parser: 'flow',
-        },
-      ],
-    },
-  ],
+  plugins: [require.resolve('prettier-plugin-tailwindcss')],
   tailwindAttributes: ['className'],
 };

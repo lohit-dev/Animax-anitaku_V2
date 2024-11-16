@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
+  ScrollView,
   useWindowDimensions,
   View,
   ViewabilityConfig,
@@ -18,12 +19,14 @@ import AnimeBannerText from '~/components/AnimeBannerText';
 import Gradient from '~/components/Gradient';
 import HomeBanner from '~/components/HomeBanner';
 import HomeButtons from '~/components/HomeButtons';
+import RowItem from '~/components/RowItem';
+import TrendingRowItem from '~/components/TrendingRowItem';
 import { animeData } from '~/helpers/data';
 import { Anime } from '~/types';
 
 const Home = () => {
   const { width } = useWindowDimensions();
-  const [anime, setAnime] = useState(animeData);
+  const [anime, setAnime] = useState(animeData.spotlightAnimes);
   const [currentIndex, setCurrentIndex] = useState(0);
   const x = useSharedValue(0);
   const ref = useAnimatedRef<Animated.FlatList<any>>();
@@ -80,45 +83,58 @@ const Home = () => {
         animated
         hideTransitionAnimation="fade"
       />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Home Banner for the current anime */}
+        {anime.map((anime: Anime, index) => {
+          return (
+            currentIndex === index && <HomeBanner key={anime.id} index={index} item={anime} x={x} />
+          );
+        })}
 
-      {/* Home Banner for the current anime */}
-      {anime.map((anime: Anime, index) => {
-        return (
-          currentIndex === index && <HomeBanner key={anime.id} index={index} item={anime} x={x} />
-        );
-      })}
+        <Gradient />
 
-      <Gradient />
+        {/* FlatList of Anime */}
+        <View className="flex flex-col">
+          <Animated.FlatList
+            onScrollBeginDrag={() => {
+              setIsAutoPlay(false);
+            }}
+            onScrollEndDrag={() => {
+              setIsAutoPlay(true);
+            }}
+            style={{ flexGrow: 0 }}
+            ref={ref}
+            data={anime}
+            onScroll={onScroll}
+            horizontal
+            viewabilityConfigCallbackPairs={viewAbilityConfigCallbackPairs.current}
+            bounces={false}
+            scrollEventThrottle={16}
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            keyExtractor={(_, index) => `list_item${index}`}
+            onEndReachedThreshold={0.5}
+            onEndReached={() => setAnime([...anime, ...animeData.spotlightAnimes])}
+            renderItem={({ item, index }) => {
+              return <AnimeBannerText item={item} index={index} x={x} />;
+            }}
+          />
 
-      {/* FlatList of Anime */}
-      <View className="flex flex-col">
-        <Animated.FlatList
-          onScrollBeginDrag={() => {
-            setIsAutoPlay(false);
-          }}
-          onScrollEndDrag={() => {
-            setIsAutoPlay(true);
-          }}
-          style={{ flexGrow: 0 }}
-          ref={ref}
-          data={anime}
-          onScroll={onScroll}
-          horizontal
-          viewabilityConfigCallbackPairs={viewAbilityConfigCallbackPairs.current}
-          bounces={false}
-          scrollEventThrottle={16}
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled
-          keyExtractor={(_, index) => `list_item${index}`}
-          onEndReachedThreshold={0.5}
-          onEndReached={() => setAnime([...anime, ...animeData])}
-          renderItem={({ item, index }) => {
-            return <AnimeBannerText item={item} index={index} x={x} />;
-          }}
-        />
-
-        <HomeButtons />
-      </View>
+          <HomeButtons />
+          <TrendingRowItem name="Hot Trends" seeAll data={animeData.trendingAnimes} />
+          <RowItem name="Latest Episodes" seeAll data={animeData.latestEpisodeAnimes} />
+          <RowItem name="Upcoming Releases" seeAll data={animeData.topUpcomingAnimes} />
+          <RowItem name="Top Airing Now" seeAll data={animeData.topAiringAnimes} />
+          <RowItem name="Most Popular" seeAll data={animeData.mostPopularAnimes} />
+          <RowItem name="Fan Favorites" seeAll data={animeData.mostFavoriteAnimes} />
+          <RowItem
+            name="Completed Series"
+            seeAll
+            data={animeData.latestCompletedAnimes}
+            className="mb-44"
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
