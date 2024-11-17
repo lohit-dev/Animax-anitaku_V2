@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import '../global.css';
 
+import { StatusBar } from 'expo-status-bar';
+
 import { useColorScheme } from '~/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -22,7 +24,6 @@ export default function RootLayout() {
     const setNav = async () => {
       try {
         await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBackgroundColorAsync('black');
         await NavigationBar.setBehaviorAsync('overlay-swipe');
       } catch (error) {
         console.error('Error setting navigation bar:', error);
@@ -41,9 +42,16 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        animated
+        style="light"
+        hideTransitionAnimation="fade"
+      />
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="main" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

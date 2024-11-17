@@ -10,7 +10,11 @@ module.exports = {
 
   presets: [require('nativewind/preset')],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        salsa: ['Salsa-Regular'],
+      },
+    },
   },
   plugins: [],
 };

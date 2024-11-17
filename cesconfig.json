@@ -1,6 +1,6 @@
 {
   "cesVersion": "2.11.24",
-  "projectName": "AgroLink",
+  "projectName": "animax",
   "packages": [
     {
       "name": "expo-router",

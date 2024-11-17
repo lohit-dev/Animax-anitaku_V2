@@ -3,13 +3,14 @@
     "name": "Animax",
     "slug": "animax",
     "version": "1.0.0",
+    "newArchEnabled": true,
     "scheme": "animax",
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": ["expo-router", "expo-font"],
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true

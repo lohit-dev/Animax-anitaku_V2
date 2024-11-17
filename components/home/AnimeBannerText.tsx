@@ -19,7 +19,6 @@ type AnimeBannerTextProps = {
 
 const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
   const { width } = useWindowDimensions();
-
   const titleHeight = item.jname.length > 22 ? hp(12) : hp(9);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -46,21 +45,24 @@ const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <View
-        className="absolute bottom-1 left-0 right-0 object-contain px-3 text-center text-5xl text-white"
+        className="absolute bottom-0 left-0 right-0 px-3 text-center text-white"
         style={[styles.title, { height: titleHeight }]}>
         <Text
-          className="text-center text-4xl font-bold tracking-tight text-white"
+          className="font-salsa pt-3 text-center text-3xl font-semibold text-white"
           numberOfLines={2}
           ellipsizeMode="tail">
-          {getFormattedTitle(item.jname)}
+          {getFormattedTitle(item.jname, 'text-4xl font-salsa')}
         </Text>
         <View className="flex-row flex-wrap items-center justify-center px-14">
-          {/* <Text className="font-bold text-lime-300">{item.duration}</Text>
-          <Text className="text-xl text-lime-300"> • </Text> */}
           {item?.otherInfo?.map((info, i) => (
             <React.Fragment key={i}>
-              <Text className="text-sm font-semibold text-gray-300">{info}</Text>
-              {i < info.length - 1 && <Text className="text-2xl text-lime-300"> • </Text>}
+              <Text
+                className={`font-salsa text-base font-semibold text-gray-300 ${i === 0 ? 'text-lg text-lime-300' : ''}`}>
+                {info}
+              </Text>
+              {i < info.length - 1 && (
+                <Text className="font-salsa text-2xl text-lime-300"> • </Text>
+              )}
             </React.Fragment>
           ))}
         </View>
@@ -78,5 +80,6 @@ const styles = StyleSheet.create({
   },
   title: {
     height: 100,
+    fontFamily: 'Salsa-Regular',
   },
 });

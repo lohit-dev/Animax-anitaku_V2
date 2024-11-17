@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
@@ -15,12 +14,11 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import AnimeBannerText from '~/components/AnimeBannerText';
-import Gradient from '~/components/Gradient';
-import HomeBanner from '~/components/HomeBanner';
-import HomeButtons from '~/components/HomeButtons';
-import RowItem from '~/components/RowItem';
-import TrendingRowItem from '~/components/TrendingRowItem';
+import AnimeBannerText from '~/components/home/AnimeBannerText';
+import Gradient from '~/components/home/Gradient';
+import HomeBanner from '~/components/home/HomeBanner';
+import HomeButtons from '~/components/home/HomeButtons';
+import RowItem from '~/components/home/RowItem';
 import { animeData } from '~/helpers/data';
 import { Anime } from '~/types';
 
@@ -77,12 +75,6 @@ const Home = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        animated
-        hideTransitionAnimation="fade"
-      />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Home Banner for the current anime */}
         {anime.map((anime: Anime, index) => {
@@ -121,7 +113,7 @@ const Home = () => {
           />
 
           <HomeButtons />
-          <TrendingRowItem name="Hot Trends" seeAll data={animeData.trendingAnimes} />
+          <RowItem name="Hot Trends" seeAll data={animeData.trendingAnimes} rounded />
           <RowItem name="Latest Episodes" seeAll data={animeData.latestEpisodeAnimes} />
           <RowItem name="Upcoming Releases" seeAll data={animeData.topUpcomingAnimes} />
           <RowItem name="Top Airing Now" seeAll data={animeData.topAiringAnimes} />

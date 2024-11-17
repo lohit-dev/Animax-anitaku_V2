@@ -1,7 +1,8 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
-export const getFormattedTitle = (title: string) => {
+export const getFormattedTitle = (title: string, className?: string) => {
   const words = title.split(/(\s+|\W)/).filter(Boolean);
   return words.map((word, index) => {
     if (word.match(/[a-zA-Z]/)) {
@@ -10,7 +11,9 @@ export const getFormattedTitle = (title: string) => {
 
       return (
         <React.Fragment key={index}>
-          <Text className="text-3xl font-bold text-lime-300">{firstLetter}</Text>
+          <Text className={twMerge(className, 'font-salsa font-bold text-lime-300')}>
+            {firstLetter}
+          </Text>
           {restOfWord}
         </React.Fragment>
       );
@@ -18,7 +21,7 @@ export const getFormattedTitle = (title: string) => {
 
     return (
       <React.Fragment key={index}>
-        <Text className="text-white">{word}</Text>
+        <Text className="font-salsa text-white">{word}</Text>
       </React.Fragment>
     );
   });
