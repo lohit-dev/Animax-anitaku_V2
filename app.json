@@ -33,7 +33,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -43,6 +45,14 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.king_grey.animax"
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "004f3298-08af-4d62-977e-17650948559f"
+      }
     }
   }
 }
