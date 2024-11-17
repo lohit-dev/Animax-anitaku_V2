@@ -8,7 +8,7 @@ import { Anime } from '~/types';
 type RowItemProps = {
   name: string;
   seeAll: boolean;
-  data: Anime[];
+  data: Anime[] | undefined;
   className?: string;
   rounded?: boolean;
 };

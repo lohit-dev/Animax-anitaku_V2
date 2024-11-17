@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+
 const MyList = () => {
   return (
     <View className="flex-1 items-center justify-center bg-neutral-950">
@@ -6,4 +7,5 @@ const MyList = () => {
     </View>
   );
 };
+
 export default MyList;

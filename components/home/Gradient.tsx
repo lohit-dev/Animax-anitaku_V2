@@ -17,6 +17,7 @@ const Gradient = () => {
     </View>
   );
 };
+
 export default Gradient;
 
 const styles = StyleSheet.create({

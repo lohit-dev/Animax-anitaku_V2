@@ -10,6 +10,7 @@ import { hp, wp } from '~/helpers/common';
 const TabBar = (props: BottomTabBarProps) => (
   <BottomNavigation.Bar
     theme={darkTheme}
+    key={props.state.key}
     style={styles.tabBarStyle}
     navigationState={props.state}
     safeAreaInsets={props.insets}

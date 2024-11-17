@@ -17,6 +17,7 @@ type HomeBannerProps = {
 
 const HomeBanner = ({ index, item, x }: HomeBannerProps) => {
   const { width } = useWindowDimensions();
+
   const animatedStyle = useAnimatedStyle(() => {
     const currentOffset = index * width;
 
@@ -37,6 +38,7 @@ const HomeBanner = ({ index, item, x }: HomeBannerProps) => {
 
   return <Animated.Image source={{ uri: item.poster }} style={[styles.Image, animatedStyle]} />;
 };
+
 export default HomeBanner;
 
 const styles = StyleSheet.create({

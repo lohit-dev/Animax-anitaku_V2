@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query';
+import LottieView from 'lottie-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
@@ -19,17 +21,28 @@ import Gradient from '~/components/home/Gradient';
 import HomeBanner from '~/components/home/HomeBanner';
 import HomeButtons from '~/components/home/HomeButtons';
 import RowItem from '~/components/home/RowItem';
-import { animeData } from '~/helpers/data';
+import { hp, wp } from '~/helpers/common';
+import { fetchHomePage } from '~/services/AnimeService';
 import { Anime } from '~/types';
 
 const Home = () => {
   const { width } = useWindowDimensions();
-  const [anime, setAnime] = useState(animeData.spotlightAnimes);
+  const {
+    data: HomePageData,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['homepage'],
+    queryFn: fetchHomePage,
+  });
+
+  const [anime, setAnime] = useState<Anime[]>(HomePageData?.spotlightAnimes || []);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+
   const x = useSharedValue(0);
   const ref = useAnimatedRef<Animated.FlatList<any>>();
   const interval = useRef<NodeJS.Timeout>();
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
 
   const viewabilityConfig: ViewabilityConfig = {
     itemVisiblePercentThreshold: 50,
@@ -49,9 +62,13 @@ const Home = () => {
     onScroll: (e) => {
       x.value = e.contentOffset.x;
     },
-    // onMomentumEnd: (e) => {
-    // }
   });
+
+  useEffect(() => {
+    if (HomePageData?.spotlightAnimes) {
+      setAnime(HomePageData.spotlightAnimes);
+    }
+  }, [HomePageData]);
 
   useEffect(() => {
     if (isAutoPlay) {
@@ -73,19 +90,51 @@ const Home = () => {
     };
   }, [isAutoPlay, currentIndex, anime.length, width]);
 
+  if (isLoading) {
+    return (
+      <View className="flex flex-1 items-center justify-center bg-neutral-950">
+        <LottieView
+          source={require('~/assets/lottie/loading.json')}
+          autoPlay
+          loop
+          style={{ height: hp(20), width: wp(50) }}
+        />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex flex-1 items-center justify-center bg-neutral-950">
+        <LottieView
+          source={require('~/assets/lottie/Error.json')}
+          autoPlay
+          loop
+          style={{ height: hp(40), width: wp(70) }}
+        />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical
+        scrollEventThrottle={16}>
         {/* Home Banner for the current anime */}
-        {anime.map((anime: Anime, index) => {
-          return (
-            currentIndex === index && <HomeBanner key={anime.id} index={index} item={anime} x={x} />
-          );
-        })}
-
+        {anime.length > 0 &&
+          anime.map((animeItem: Anime, index: number) => {
+            return (
+              currentIndex === index && (
+                <HomeBanner key={animeItem.id} index={index} item={animeItem} x={x} />
+              )
+            );
+          })}
+        {/* Gradient for the Banner */}
         <Gradient />
 
-        {/* FlatList of Anime */}
+        {/* FlatList */}
         <View className="flex flex-col">
           <Animated.FlatList
             onScrollBeginDrag={() => {
@@ -106,23 +155,24 @@ const Home = () => {
             pagingEnabled
             keyExtractor={(_, index) => `list_item${index}`}
             onEndReachedThreshold={0.5}
-            onEndReached={() => setAnime([...anime, ...animeData.spotlightAnimes])}
+            onEndReached={() => setAnime([...anime, ...(HomePageData?.spotlightAnimes || [])])}
             renderItem={({ item, index }) => {
               return <AnimeBannerText item={item} index={index} x={x} />;
             }}
           />
 
           <HomeButtons />
-          <RowItem name="Hot Trends" seeAll data={animeData.trendingAnimes} rounded />
-          <RowItem name="Latest Episodes" seeAll data={animeData.latestEpisodeAnimes} />
-          <RowItem name="Upcoming Releases" seeAll data={animeData.topUpcomingAnimes} />
-          <RowItem name="Top Airing Now" seeAll data={animeData.topAiringAnimes} />
-          <RowItem name="Most Popular" seeAll data={animeData.mostPopularAnimes} />
-          <RowItem name="Fan Favorites" seeAll data={animeData.mostFavoriteAnimes} />
+          {/* The Main Flatlist's */}
+          <RowItem name="Hot Trends" seeAll data={HomePageData?.trendingAnimes} rounded />
+          <RowItem name="Latest Episodes" seeAll data={HomePageData?.latestEpisodeAnimes} />
+          <RowItem name="Upcoming Releases" seeAll data={HomePageData?.topUpcomingAnimes} />
+          <RowItem name="Top Airing Now" seeAll data={HomePageData?.topAiringAnimes} />
+          <RowItem name="Most Popular" seeAll data={HomePageData?.mostPopularAnimes} />
+          <RowItem name="Fan Favorites" seeAll data={HomePageData?.mostFavoriteAnimes} />
           <RowItem
             name="Completed Series"
             seeAll
-            data={animeData.latestCompletedAnimes}
+            data={HomePageData?.latestCompletedAnimes}
             className="mb-44"
           />
         </View>

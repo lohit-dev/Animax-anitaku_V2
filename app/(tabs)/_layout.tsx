@@ -1,23 +1,8 @@
-import { type ParamListBase, type TabNavigationState } from '@react-navigation/native';
-import { Tabs, withLayoutContext } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Discover, Home2, Profile, SearchNormal1 } from 'iconsax-react-native';
 import React from 'react';
-import type {
-  MaterialBottomTabNavigationEventMap,
-  MaterialBottomTabNavigationOptions,
-} from 'react-native-paper/react-navigation';
-import { createMaterialBottomTabNavigator } from 'react-native-paper/react-navigation';
 
 import TabBar from '~/components/navigation/TabBar';
-
-const { Navigator } = createMaterialBottomTabNavigator();
-
-export const MaterialBottomTabs = withLayoutContext<
-  MaterialBottomTabNavigationOptions,
-  typeof Navigator,
-  TabNavigationState<ParamListBase>,
-  MaterialBottomTabNavigationEventMap
->(Navigator);
 
 const BottomLayout = () => {
   return (
@@ -26,7 +11,6 @@ const BottomLayout = () => {
       screenOptions={{
         headerShown: false,
         tabBarHideOnKeyboard: true,
-        // header: (props) => <TabsHeader navProps={props} children={undefined} />,
       }}>
       <Tabs.Screen
         name="Home"

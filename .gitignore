@@ -12,8 +12,6 @@ web-build/
 # expo router
 expo-env.d.ts
 
-
-
 ios
 android
 
