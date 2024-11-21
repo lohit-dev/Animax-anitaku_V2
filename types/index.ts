@@ -47,6 +47,35 @@ export type AnimeData = {
   genres: string[];
 };
 
+type SearchFilters = {
+  genres?: string;
+  type?: string;
+  sort?: string;
+  season?: string;
+  language?: string;
+  status?: string;
+  rated?: string;
+  start_date?: string;
+  score?: string;
+};
+
+export type SearchParams = {
+  q: string;
+  page?: number;
+  filters?: SearchFilters;
+};
+
+export type SearchResponse = {
+  success: boolean;
+  data: {
+    animes: Anime[];
+    searchQuery: string;
+    searchFilters: SearchFilters;
+    totalPages: number;
+    hasNextPage: boolean;
+    currentPage: number;
+  };
+};
 export type ApiResponse = {
   success: boolean;
   data: AnimeData;
