@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Discover, Home2, Profile, SearchNormal1 } from 'iconsax-react-native';
+import { Book1, Discover, Home2, Profile } from 'iconsax-react-native';
 import React from 'react';
 
 import TabBar from '~/components/navigation/TabBar';
@@ -45,9 +45,9 @@ const BottomLayout = () => {
           tabBarLabel: 'My List',
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <SearchNormal1 size="24" variant="Broken" color={color} />
+              <Book1 size="24" variant="Broken" color={color} />
             ) : (
-              <SearchNormal1 size="24" color={color} />
+              <Book1 size="24" color={color} />
             ),
         }}
       />
@@ -55,7 +55,7 @@ const BottomLayout = () => {
         name="Settings"
         key="settings"
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: 'Profile',
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <Profile size="24" variant="Broken" color={color} />

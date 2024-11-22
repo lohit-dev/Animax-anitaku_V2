@@ -76,7 +76,60 @@ export type SearchResponse = {
     currentPage: number;
   };
 };
+
 export type ApiResponse = {
   success: boolean;
   data: AnimeData;
+};
+
+export type Genre =
+  | 'Action'
+  | 'Adventure'
+  | 'Cars'
+  | 'Comedy'
+  | 'Dementia'
+  | 'Demons'
+  | 'Drama'
+  | 'Ecchi'
+  | 'Fantasy'
+  | 'Game'
+  | 'Harem'
+  | 'Historical'
+  | 'Horror'
+  | 'Isekai'
+  | 'Josei'
+  | 'Kids'
+  | 'Magic'
+  | 'Martial Arts'
+  | 'Mecha'
+  | 'Military'
+  | 'Music'
+  | 'Mystery'
+  | 'Parody'
+  | 'Police'
+  | 'Psychological'
+  | 'Romance'
+  | 'Samurai'
+  | 'School'
+  | 'Sci-Fi'
+  | 'Seinen'
+  | 'Shoujo'
+  | 'Shoujo Ai'
+  | 'Shounen'
+  | 'Shounen Ai'
+  | 'Slice of Life'
+  | 'Space'
+  | 'Sports'
+  | 'Super Power'
+  | 'Supernatural'
+  | 'Thriller'
+  | 'Vampire';
+
+export type CategoryResponse = {
+  success: boolean;
+  data: {
+    animes: Anime[];
+    genres: Genre;
+    top10Animes: Top10Animes;
+  };
 };

@@ -1,4 +1,4 @@
-import { AnimeData, SearchParams, SearchResponse } from '~/types';
+import { AnimeData, CategoryResponse, SearchParams, SearchResponse } from '~/types';
 
 export const fetchHomePage = async (): Promise<AnimeData> => {
   const response = await fetch('https://aniwatch-api.onrender.com/api/v2/hianime/home');
@@ -31,7 +31,7 @@ export const fetchSearchDetails = async (params: SearchParams): Promise<SearchRe
   return data;
 };
 
-export const fetchCategory = async (category: string) => {
+export const fetchCategory = async (category: string): Promise<CategoryResponse> => {
   const response = await fetch(
     `https://aniwatch-api.onrender.com/api/v2/hianime/category/${category}`
   );

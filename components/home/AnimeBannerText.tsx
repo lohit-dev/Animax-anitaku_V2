@@ -76,7 +76,7 @@ export default AnimeBannerText;
 const styles = StyleSheet.create({
   container: {
     width: wp(100),
-    height: hp(52),
+    height: hp(50),
   },
   title: {
     height: 100,

@@ -12,7 +12,7 @@ type SearchInputProps = {
 const SearchInput = ({ text, onChangeText }: SearchInputProps) => {
   return (
     <SafeAreaView>
-      <View className="px-6 py-12 pt-20">
+      <View className="px-6 pb-10 pt-20">
         <Animated.View
           entering={FadeInDown.delay(650).duration(500)}
           className="rounded-full bg-lime-50/70 p-1">

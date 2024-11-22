@@ -1,18 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
+import LottieView from 'lottie-react-native';
 import { useState, useEffect } from 'react';
-import {
-  TextInput,
-  View,
-  SafeAreaView,
-  TouchableOpacity,
-  FlatList,
-  Text,
-  ScrollView,
-} from 'react-native';
+import { View, FlatList, Text, ScrollView, SafeAreaView } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import RowItem from '~/components/home/RowItem';
 import SearchInput from '~/components/search/SearchInput';
+import AnimeCard from '~/components/shared/AnimeCard';
 import { hp, wp } from '~/helpers/common';
 import { fetchCategory, fetchSearchDetails } from '~/services/AnimeService';
 import { Anime, SearchResponse } from '~/types';
@@ -66,54 +60,107 @@ const Discover = () => {
     }
   }, [dubbedAnimeData]);
 
-  // Render individual anime item in search result
-  const renderSearchItem = ({ item }: { item: Anime }) => {
-    return (
-      <View className="flex-1 items-center justify-center p-2">
-        <Text className="text-lg text-white">{item.jname}</Text>
-      </View>
-    );
-  };
+  // const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+  // const renderSearchItem = ({ item, index }: { item: Anime; index: number }) => {
+  //   return (
+  //     <AnimatedTouchableOpacity
+  //       entering={FadeInDown.delay(index * 500).duration(500)}
+  //       className="flex-1 items-center justify-center p-2">
+  //       <View className="overflow-hidden rounded-2xl">
+  //         <ImageBackground source={{ uri: item.poster }} style={styles.Image} />
+  //       </View>
+  //     </AnimatedTouchableOpacity>
+  //   );
+  // };
 
   return (
-    <ScrollView className="flex-1 bg-neutral-950">
+    <SafeAreaView className="flex-1 bg-neutral-950">
       {/* Search Input */}
       <SearchInput text={searchQuery} onChangeText={setSearchQuery} />
 
-      {/* Title Section */}
-      <Animated.View entering={FadeInDown.delay(400).duration(800)}>
-        <Text className="text-center font-salsa text-white" style={{ fontSize: wp(10) }}>
-          What are you{'\n'}
-          <Text>Looking for ?</Text>
-        </Text>
-        <Text
-          className="mt-2 text-wrap text-center font-mono text-lg text-neutral-400"
-          numberOfLines={2}>
-          Find your Favorite Anime Between more{'\n'}
-          <Text>Than 10,000 Anime</Text>
-        </Text>
-      </Animated.View>
+      {/* Conditional Rendering: Show only when searchQuery is empty */}
+      {!searchQuery && (
+        <ScrollView>
+          {/* Title Section */}
+          <Animated.View entering={FadeInDown.delay(400).duration(800)}>
+            <Text className="text-center font-salsa text-white" style={{ fontSize: wp(10) }}>
+              What are you{'\n'}
+              <Text>Looking for ?</Text>
+            </Text>
+            <Text
+              className="mt-2 text-wrap text-center font-sans text-lg font-semibold text-neutral-400"
+              numberOfLines={2}>
+              Find your Favorite Anime Between more{'\n'}
+              <Text>Than 10,000 Anime</Text>
+            </Text>
+          </Animated.View>
+
+          {/* Subbed and Dubbed Anime Categories */}
+          {subbedAnime.length > 0 && <RowItem data={subbedAnime} name="Subbed Anime" seeAll />}
+          {dubbedAnime.length > 0 && <RowItem data={dubbedAnime} name="Dubbed Anime" seeAll />}
+        </ScrollView>
+      )}
 
       {/* Loading, Error, and Search Results */}
-      {isLoading && <Text className="text-center text-white">Loading...</Text>}
-      {error && <Text className="text-center text-white">Error occurred. Please try again.</Text>}
+      {searchQuery && isLoading && (
+        <View className="flex-1 items-center justify-center bg-neutral-950">
+          <LottieView
+            source={require('~/assets/lottie/loading.json')}
+            autoPlay
+            loop
+            style={{
+              height: hp(30),
+              width: wp(70),
+              alignSelf: 'center',
+            }}
+          />
+        </View>
+      )}
+      {error && !searchQuery && (
+        <View className="flex flex-1 items-center justify-center bg-neutral-950">
+          <LottieView
+            source={require('~/assets/lottie/Error.json')}
+            autoPlay
+            loop
+            style={{
+              height: hp(60),
+              width: wp(80),
+              alignSelf: 'center',
+            }}
+          />
+        </View>
+      )}
 
       {/* Search Results FlatList */}
-      {searchAnimes.length > 0 && (
+      {searchQuery && !isLoading && searchAnimes.length > 0 && (
         <FlatList
           data={searchAnimes}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderSearchItem}
+          keyExtractor={(_, index) => `searchItem_${index}`}
+          renderItem={({ item, index }) => <AnimeCard item={item} index={index} />}
           numColumns={3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={20}
           onEndReachedThreshold={0.5}
         />
       )}
 
-      {/* Subbed and Dubbed Anime Categories */}
-      {subbedAnime.length > 0 && <RowItem data={subbedAnime} name="Subbed Anime" seeAll />}
-
-      {dubbedAnime.length > 0 && <RowItem data={dubbedAnime} name="Dubbed Anime" seeAll />}
-    </ScrollView>
+      {/* Empty state if no search results */}
+      {searchQuery && !isLoading && searchAnimes.length === 0 && (
+        <View>
+          <LottieView
+            source={require('~/assets/lottie/no_results_found.json')}
+            autoPlay
+            loop
+            style={{
+              height: hp(60),
+              width: wp(80),
+              alignSelf: 'center',
+            }}
+          />
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
 

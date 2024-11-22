@@ -119,6 +119,7 @@ const Home = () => {
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
       <ScrollView
+        nestedScrollEnabled
         showsVerticalScrollIndicator={false}
         alwaysBounceVertical
         scrollEventThrottle={16}>
@@ -153,6 +154,8 @@ const Home = () => {
             scrollEventThrottle={16}
             showsHorizontalScrollIndicator={false}
             pagingEnabled
+            initialNumToRender={10}
+            maxToRenderPerBatch={20}
             keyExtractor={(_, index) => `list_item${index}`}
             onEndReachedThreshold={0.5}
             onEndReached={() => setAnime([...anime, ...(HomePageData?.spotlightAnimes || [])])}

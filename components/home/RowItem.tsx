@@ -1,5 +1,7 @@
 import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInRight } from 'react-native-reanimated';
+
+import AnimeCard from '../shared/AnimeCard';
 
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
@@ -16,18 +18,6 @@ type RowItemProps = {
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowItemProps) => {
-  const renderItem = ({ item, index }: { item: Anime; index: number }) => {
-    return (
-      <AnimatedTouchableOpacity
-        entering={FadeInDown.delay(index * 400).duration(500)}
-        className="flex px-2">
-        <View className="overflow-hidden rounded-2xl">
-          <ImageBackground source={{ uri: item.poster }} style={styles.Image} />
-        </View>
-      </AnimatedTouchableOpacity>
-    );
-  };
-
   const roundedRenderItem = ({ item, index }: { item: Anime; index: number }) => {
     return (
       <AnimatedTouchableOpacity
@@ -49,10 +39,14 @@ const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowI
   return (
     <View className={className}>
       <View className="flex flex-row items-center justify-between p-4 pt-8">
-        <Text className="font-salsa text-2xl font-semibold text-white">
+        <Text className="font-salsa text-3xl font-semibold text-white">
           {getFormattedTitle(name)}
         </Text>
-        {seeAll && <Text className="font-salsa text-base text-lime-300">view all</Text>}
+        {seeAll && (
+          <TouchableOpacity onPress={() => {}}>
+            <Text className="font-salsa text-base text-lime-300">View all</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <FlatList
         nestedScrollEnabled
@@ -61,8 +55,12 @@ const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowI
         data={data}
         contentContainerClassName="px-2"
         showsHorizontalScrollIndicator={false}
-        renderItem={rounded ? roundedRenderItem : renderItem}
+        renderItem={
+          rounded ? roundedRenderItem : ({ item, index }) => <AnimeCard item={item} index={index} />
+        }
         keyExtractor={(_, index) => index.toString()}
+        initialNumToRender={10}
+        maxToRenderPerBatch={20}
       />
     </View>
   );
