@@ -10,6 +10,7 @@ import { hp, wp } from '~/helpers/common';
 const TabBar = (props: BottomTabBarProps) => (
   <BottomNavigation.Bar
     theme={darkTheme}
+    compact
     key={props.state.key}
     style={styles.tabBarStyle}
     navigationState={props.state}
@@ -68,8 +69,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: wp(6),
     elevation: 2,
     fontFamily: 'Salsa-Regular',
-    left: wp(6),
-    right: wp(6),
+    left: wp(4),
+    right: wp(4),
     shadowOffset: { width: 0, height: 30 },
     shadowOpacity: 0.2,
     fontWeight: 'bold',

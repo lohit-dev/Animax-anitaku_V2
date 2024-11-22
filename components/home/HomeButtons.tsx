@@ -7,7 +7,7 @@ const HomeButtons = () => {
   return (
     <Animated.View
       entering={FadeInUp.delay(400).duration(500)}
-      className="-mt-2 flex-row justify-evenly gap-5 px-16">
+      className="flex-row justify-evenly gap-5 px-16">
       {/* Play Trailer Button */}
       <Pressable
         className="flex-1 flex-row items-center justify-center gap-2 space-x-2 rounded-3xl bg-lime-300 p-3"

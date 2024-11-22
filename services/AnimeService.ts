@@ -7,6 +7,7 @@ export const fetchHomePage = async (): Promise<AnimeData> => {
 
   return data?.data;
 };
+
 export const fetchSearchDetails = async (params: SearchParams): Promise<SearchResponse> => {
   const { q, filters, page = 1 } = params;
 
@@ -27,6 +28,15 @@ export const fetchSearchDetails = async (params: SearchParams): Promise<SearchRe
   if (!response.ok) throw new Error('Error fetching search details');
   const data = await response.json();
 
-  console.log(data);
+  return data;
+};
+
+export const fetchCategory = async (category: string) => {
+  const response = await fetch(
+    `https://aniwatch-api.onrender.com/api/v2/hianime/category/${category}`
+  );
+  if (!response.ok) throw new Error('Error Fetching Subbed Anime');
+  const data = await response.json();
+
   return data;
 };
