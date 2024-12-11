@@ -1,7 +1,13 @@
-import { AnimeData, CategoryResponse, SearchParams, SearchResponse } from '~/types';
+import {
+  AnimeData,
+  AnimeInfoResponse,
+  CategoryResponse,
+  SearchParams,
+  SearchResponse,
+} from '~/types';
 
 export const fetchHomePage = async (): Promise<AnimeData> => {
-  const response = await fetch('https://aniwatch-api.onrender.com/api/v2/hianime/home');
+  const response = await fetch('https://aniwatch-mauve.vercel.app/api/v2/hianime/home');
   if (!response.ok) throw new Error('Error fetching anime home page data');
   const data = await response.json();
 
@@ -22,7 +28,7 @@ export const fetchSearchDetails = async (params: SearchParams): Promise<SearchRe
   }
 
   const response = await fetch(
-    `https://aniwatch-api.onrender.com/api/v2/hianime/search?${queryString}`
+    `https://aniwatch-mauve.vercel.appapi/v2/hianime/search?${queryString}`
   );
 
   if (!response.ok) throw new Error('Error fetching search details');
@@ -33,10 +39,19 @@ export const fetchSearchDetails = async (params: SearchParams): Promise<SearchRe
 
 export const fetchCategory = async (category: string): Promise<CategoryResponse> => {
   const response = await fetch(
-    `https://aniwatch-api.onrender.com/api/v2/hianime/category/${category}`
+    `https://aniwatch-mauve.vercel.app/api/v2/hianime/category/${category}`
   );
   if (!response.ok) throw new Error('Error Fetching Subbed Anime');
   const data = await response.json();
 
+  return data;
+};
+
+export const fetchAnimeById = async (id: string): Promise<AnimeInfoResponse> => {
+  const response = await fetch(`/api/v2/hianime/anime/${id}`);
+  if (!response.ok) throw new Error('Error Fetching Details ' + id);
+  const data = await response.json();
+
+  console.log(data);
   return data;
 };

@@ -65,6 +65,79 @@ export type SearchParams = {
   filters?: SearchFilters;
 };
 
+type Season = {
+  id: string;
+  name: string;
+  title: string;
+  poster: string;
+  isCurrent: boolean;
+};
+
+export type AnimeInfoResponse = {
+  success: boolean;
+  data: {
+    anime: {
+      info: {
+        id: string;
+        anilistId: BigInt;
+        malId: BigInt;
+        name: string;
+        poster: string;
+        description: string;
+        stats: {
+          rating: string;
+          quality: string;
+          episodes: {
+            sub: number;
+            dub: number;
+          };
+          type: string;
+          duration: string;
+        };
+        promotionalVideos: PromotionalVideo[];
+        characterVoiceActor: CharacterVoiceActor[];
+      };
+      moreInfo: {
+        japanese: string;
+        synonyms: string;
+        premiered: string;
+        malscore: string;
+        aired: string;
+        genres: string[];
+        status: string;
+        studios: string;
+        duration: string;
+        producers: string[];
+      };
+      seasons: Season[];
+      mostPopularAnimes: Anime[];
+      recommended: Anime[];
+      related: Anime[];
+    };
+  };
+};
+
+export type PromotionalVideo = {
+  title: string | undefined;
+  source: string | undefined;
+  thumbnail: string | undefined;
+};
+
+export type CharacterVoiceActor = {
+  character: {
+    id: string;
+    poster: string;
+    name: string;
+    cast: string;
+  };
+  voiceActor: {
+    id: string;
+    poster: string;
+    name: string;
+    cast: string;
+  };
+};
+
 export type SearchResponse = {
   success: boolean;
   data: {

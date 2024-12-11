@@ -97,7 +97,7 @@ const Home = () => {
           source={require('~/assets/lottie/loading.json')}
           autoPlay
           loop
-          style={{ height: hp(30), width: wp(40) }}
+          style={{ height: hp(40), width: wp(45) }}
         />
       </View>
     );
