@@ -6,11 +6,23 @@ import {
   SearchResponse,
 } from '~/types';
 
-export const fetchHomePage = async (): Promise<AnimeData> => {
-  const response = await fetch('https://aniwatch-mauve.vercel.app/api/v2/hianime/home');
-  if (!response.ok) throw new Error('Error fetching anime home page data');
-  const data = await response.json();
+const BASE_URL = 'https://aniwatch-mauve.vercel.app/';
 
+// Utility function to fetch data
+async function fetchData(endpoint: string): Promise<any> {
+  try {
+    const response = await fetch(`${BASE_URL}/${endpoint}`);
+    if (!response.ok) throw new Error(`Error fetching data from ${endpoint}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error;
+  }
+}
+
+export const fetchHomePage = async (): Promise<AnimeData> => {
+  const data = await fetchData('api/v2/hianime/home');
   return data?.data;
 };
 
@@ -27,31 +39,17 @@ export const fetchSearchDetails = async (params: SearchParams): Promise<SearchRe
     });
   }
 
-  const response = await fetch(
-    `https://aniwatch-mauve.vercel.appapi/v2/hianime/search?${queryString}`
-  );
-
-  if (!response.ok) throw new Error('Error fetching search details');
-  const data = await response.json();
-
+  const data = await fetchData(`api/v2/hianime/search?${queryString}`);
   return data;
 };
 
 export const fetchCategory = async (category: string): Promise<CategoryResponse> => {
-  const response = await fetch(
-    `https://aniwatch-mauve.vercel.app/api/v2/hianime/category/${category}`
-  );
-  if (!response.ok) throw new Error('Error Fetching Subbed Anime');
-  const data = await response.json();
-
+  const data = await fetchData(`api/v2/hianime/category/${category}`);
   return data;
 };
 
-export const fetchAnimeById = async (id: string): Promise<AnimeInfoResponse> => {
-  const response = await fetch(`/api/v2/hianime/anime/${id}`);
-  if (!response.ok) throw new Error('Error Fetching Details ' + id);
-  const data = await response.json();
-
+export const fetchAnimeById = async (animeId: string): Promise<AnimeInfoResponse> => {
+  const data = await fetchData(`api/v2/hianime/anime/${animeId}`);
   console.log(data);
   return data;
 };

@@ -10,15 +10,17 @@ import { Anime } from '~/types';
 interface AnimeCardProps {
   item: Anime;
   index: number;
+  detailsEnabled?: boolean;
 }
 
-const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index }) => {
+const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEnabled = true }) => {
   const router = useRouter();
+
   const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+  const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
   const handleNavigation = () => {
-    // Navigate to the details route
-    router.push({ pathname: '/anime/[id]', params: { id: item.id } });
+    router.push({ pathname: '/anime/[id]', params: { id: item.id, poster: item.poster } });
   };
 
   return (
@@ -27,28 +29,33 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index }) => {
       entering={FadeInDown.delay(index * 400).duration(500)}
       className="flex-1 items-center justify-center p-2">
       <View className="overflow-hidden rounded-2xl">
-        <ImageBackground source={{ uri: item.poster }} style={styles.Image}>
-          <View className="flex-1 items-end justify-start p-2">
-            <Pressable className="flex-row items-center justify-center space-x-1 rounded-full bg-lime-200 px-2 py-[2]">
-              {item.rating ? (
-                <View className="flex flex-row items-center justify-center gap-1">
-                  <Star1 variant="Bold" size={12} color="#000" />
-                  <Text className="font-salsa text-black">{item.rating}</Text>
-                </View>
-              ) : item.episodes?.sub || item.episodes?.dub ? (
-                <Text className="font-salsa font-bold text-black">
-                  {item.episodes?.sub && item.episodes?.dub
-                    ? `Sub | Dub`
-                    : item.episodes?.sub
-                      ? `Sub`
-                      : `Dub`}
-                </Text>
-              ) : (
-                <Text>{item.type}</Text>
-              )}
-            </Pressable>
-          </View>
-        </ImageBackground>
+        <AnimatedImageBackground
+          source={{ uri: item.poster }}
+          style={styles.Image}
+          sharedTransitionTag="image">
+          {detailsEnabled && (
+            <View className="flex-1 items-end justify-start p-2">
+              <Pressable className="flex-row items-center justify-center space-x-1 rounded-full bg-lime-200 px-2 py-[2]">
+                {item.rating ? (
+                  <View className="flex flex-row items-center justify-center gap-1">
+                    <Star1 variant="Bold" size={12} color="#000" />
+                    <Text className="font-salsa text-black">{item.rating}</Text>
+                  </View>
+                ) : item.episodes?.sub || item.episodes?.dub ? (
+                  <Text className="font-salsa font-bold text-black">
+                    {item.episodes?.sub && item.episodes?.dub
+                      ? `Sub | Dub`
+                      : item.episodes?.sub
+                        ? `Sub`
+                        : `Dub`}
+                  </Text>
+                ) : (
+                  <Text>{item.type}</Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+        </AnimatedImageBackground>
       </View>
     </AnimatedTouchableOpacity>
   );
