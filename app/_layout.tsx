@@ -6,13 +6,13 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { useColorScheme } from '~/hooks/useColorScheme';
 
 import 'react-native-reanimated';
 import '../global.css';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
@@ -25,8 +25,10 @@ export default function RootLayout() {
   useEffect(() => {
     const setNav = async () => {
       try {
-        await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        if (Platform.OS === 'android') {
+          await NavigationBar.setVisibilityAsync('hidden');
+          await NavigationBar.setBehaviorAsync('overlay-swipe');
+        }
       } catch (error) {
         console.error('Error setting navigation bar:', error);
       }
