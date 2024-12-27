@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import LottieView from 'lottie-react-native';
-import { useState, useEffect } from 'react';
-import { View, FlatList, Text, ScrollView, SafeAreaView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import RowItem from '~/components/home/RowItem';
@@ -66,7 +66,7 @@ const Discover = () => {
   //   return (
   //     <AnimatedTouchableOpacity
   //       entering={FadeInDown.delay(index * 500).duration(500)}
-  //       className="flex-1 items-center justify-center p-2">
+  //       className="items-center justify-center flex-1 p-2">
   //       <View className="overflow-hidden rounded-2xl">
   //         <ImageBackground source={{ uri: item.poster }} style={styles.Image} />
   //       </View>
