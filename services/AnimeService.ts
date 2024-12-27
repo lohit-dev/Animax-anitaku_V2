@@ -6,7 +6,7 @@ import {
   SearchResponse,
 } from '~/types';
 
-const BASE_URL = 'https://aniwatch-mauve.vercel.app/';
+const BASE_URL = '';
 
 // Utility function to fetch data
 async function fetchData(endpoint: string): Promise<any> {
@@ -50,6 +50,5 @@ export const fetchCategory = async (category: string): Promise<CategoryResponse>
 
 export const fetchAnimeById = async (animeId: string): Promise<AnimeInfoResponse> => {
   const data = await fetchData(`api/v2/hianime/anime/${animeId}`);
-  console.log(data);
   return data;
 };

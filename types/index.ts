@@ -95,7 +95,7 @@ export type AnimeInfoResponse = {
           duration: string;
         };
         promotionalVideos: PromotionalVideo[];
-        characterVoiceActor: CharacterVoiceActor[];
+        charactersVoiceActors: CharacterVoiceActor[];
       };
       moreInfo: {
         japanese: string;
@@ -205,4 +205,11 @@ export type CategoryResponse = {
     genres: Genre;
     top10Animes: Top10Animes;
   };
+};
+
+export type Character = {
+  id: string;
+  poster: string;
+  name: string;
+  cast: string;
 };

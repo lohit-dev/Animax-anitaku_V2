@@ -7,9 +7,10 @@
     "ios": "expo run:ios",
     "start": "expo start",
     "prebuild": "expo prebuild",
-    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
+    "build": "eas build --platform android --profile sharing"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
@@ -18,6 +19,7 @@
     "@tanstack/react-query": "^5.60.2",
     "expo": "^52.0.10",
     "expo-blur": "~14.0.1",
+    "expo-clipboard": "~7.0.0",
     "expo-constants": "~17.0.3",
     "expo-dev-client": "^5.0.4",
     "expo-font": "~13.0.1",
