@@ -2,11 +2,14 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
-import { Stack } from 'expo-router';
+import { Stack, Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { Provider } from 'react-redux';
+import { store } from './_store/store';
+import { ToastProvider } from 'react-native-toast-notifications';
 
 import { useColorScheme } from '~/hooks/useColorScheme';
 
@@ -45,20 +48,24 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <StatusBar
-          translucent
-          backgroundColor="transparent"
-          animated
-          style="light"
-          hideTransitionAnimation="fade"
-        />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <ToastProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              animated
+              style="light"
+              hideTransitionAnimation="fade"
+            />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </ThemeProvider>
+        </ToastProvider>
       </QueryClientProvider>
-    </ThemeProvider>
+    </Provider>
   );
 }

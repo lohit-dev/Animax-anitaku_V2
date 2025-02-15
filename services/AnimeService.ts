@@ -6,7 +6,7 @@ import {
   SearchResponse,
 } from '~/types';
 
-const BASE_URL = '';
+const BASE_URL = 'using Hi anime api, thanks to the dev"s';
 
 // Utility function to fetch data
 async function fetchData(endpoint: string): Promise<any> {
