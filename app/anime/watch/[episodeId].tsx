@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ArrowLeft } from 'iconsax-react-native';
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, Modal, Pressable } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 

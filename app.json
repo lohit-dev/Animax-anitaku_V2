@@ -3,6 +3,7 @@
     "name": "animax",
     "slug": "animax",
     "version": "1.0.0",
+    "newArchEnabled": true,
     "scheme": "animax",
     "web": {
       "bundler": "metro",

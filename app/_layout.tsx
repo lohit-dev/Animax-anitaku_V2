@@ -32,7 +32,7 @@ export default function RootLayout() {
       try {
         if (Platform.OS === 'android') {
           await NavigationBar.setVisibilityAsync('hidden');
-          await NavigationBar.setBehaviorAsync('overlay-swipe');
+          await NavigationBar.setBehaviorAsync('inset-swipe');
         }
       } catch (error) {
         console.error('Error setting navigation bar:', error);
