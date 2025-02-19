@@ -1,6 +1,15 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView, ScrollView, Text, View, StatusBar, Platform, Dimensions } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+  StatusBar,
+  Platform,
+  Dimensions,
+} from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+
 import AnimeCard from '~/components/shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { useAppSelector } from '~/hooks/SavedAnimeHook';
@@ -20,26 +29,22 @@ const MyList = () => {
         />
       </View>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="items-center px-6 pt-8 mt-16">
-          <Text className="font-salsa text-5xl pt-6 text-white">
+        <View className="mt-16 items-center px-6 pt-8">
+          <Text className="font-salsa pt-6 text-5xl text-white">
             {getFormattedTitle('My Library', 'text-5xl font-salsa font-semibold')}
           </Text>
-          <Text className="mt-2 font-salsa text-lg text-neutral-400">
-            {getFormattedTitle(`${savedAnimes.length} Saved Anime`, 'text-lg font-salsa font-semibold')}
+          <Text className="font-salsa mt-2 text-lg text-neutral-400">
+            {getFormattedTitle(
+              `${savedAnimes.length} Saved Anime`,
+              'text-lg font-salsa font-semibold'
+            )}
           </Text>
         </View>
         {savedAnimes.length > 0 ? (
-          <Animated.View
-            entering={FadeInDown}
-            className="flex-1 px-4 pt-4"
-          >
+          <Animated.View entering={FadeInDown} className="flex-1 px-4 pt-4">
             <View className="flex-row flex-wrap justify-between">
               {savedAnimes.map((anime, index) => (
-                <View
-                  key={anime.id}
-                  className="mb-4"
-                  style={{ width: cardWidth }}
-                >
+                <View key={anime.id} className="mb-4" style={{ width: cardWidth }}>
                   <AnimeCard item={anime} index={index} />
                 </View>
               ))}
@@ -48,9 +53,8 @@ const MyList = () => {
         ) : (
           <Animated.View
             entering={FadeInDown.delay(300)}
-            className="flex-1 items-center justify-center p-8 pt-20"
-          >
-            <Text className="text-center font-salsa text-2xl text-neutral-400">
+            className="flex-1 items-center justify-center p-8 pt-20">
+            <Text className="font-salsa text-center text-2xl text-neutral-400">
               Your library is empty{'\n'}Add some anime to get started!
             </Text>
           </Animated.View>

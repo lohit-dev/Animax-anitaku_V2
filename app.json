@@ -1,9 +1,8 @@
 {
   "expo": {
-    "name": "Animax",
+    "name": "animax",
     "slug": "animax",
     "version": "1.0.0",
-    "newArchEnabled": true,
     "scheme": "animax",
     "web": {
       "bundler": "metro",
@@ -12,14 +11,28 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
       [
         "expo-dev-launcher",
         {
-          "launchMode": "most-recent",
-          "addGeneratedScheme": true
+          "launchMode": "most-recent"
         }
-      ]
+      ],
+      [
+        "react-native-video",
+        {
+          "enableHlsEngine": true,
+          "enableAndroidPictureInPicture": true,
+          "enableCaching": true,
+          "enableNotificationControls": true,
+          "androidExtensions": {
+            "useExoplayerRtsp": true,
+            "useExoplayerSmoothStreaming": true,
+            "useExoplayerHls": true,
+            "useExoplayerDash": true
+          }
+        }
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -33,9 +46,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.king-grey.animax"
@@ -45,7 +56,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.king_grey.animax"
+      "package": "com.king_grey.animax",
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
     },
     "extra": {
       "router": {

@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import savedAnimesReducer from './savedAnimesSlice';
 
 export const store = configureStore({

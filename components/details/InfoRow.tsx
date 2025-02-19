@@ -1,6 +1,7 @@
+import { Calendar, InfoCircle, Star1, Tag, Translate, Video } from 'iconsax-react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Calendar, InfoCircle, Star1, Tag, Translate, Video } from 'iconsax-react-native';
+
 import { wp } from '~/helpers/common';
 
 interface InfoRowProps {
@@ -12,26 +13,33 @@ interface InfoRowProps {
   numberOfLines?: number;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ 
-  label, 
-  value, 
-  icon, 
-  valueStyle = "text-white",
-  containerStyle = "",
-  numberOfLines = 1
+const InfoRow: React.FC<InfoRowProps> = ({
+  label,
+  value,
+  icon,
+  valueStyle = 'text-white',
+  containerStyle = '',
+  numberOfLines = 1,
 }) => {
   const getIcon = () => {
     const iconSize = wp(5);
-    const iconColor = "#a3e635";
-    
+    const iconColor = '#a3e635';
+
     switch (icon) {
-      case 'translate': return <Translate size={iconSize} color={iconColor} />;
-      case 'calendar': return <Calendar size={iconSize} color={iconColor} />;
-      case 'star': return <Star1 size={iconSize} color={iconColor} />;
-      case 'video': return <Video size={iconSize} color={iconColor} />;
-      case 'tag': return <Tag size={iconSize} color={iconColor} />;
-      case 'info': return <InfoCircle size={iconSize} color={iconColor} />;
-      default: return null;
+      case 'translate':
+        return <Translate size={iconSize} color={iconColor} />;
+      case 'calendar':
+        return <Calendar size={iconSize} color={iconColor} />;
+      case 'star':
+        return <Star1 size={iconSize} color={iconColor} />;
+      case 'video':
+        return <Video size={iconSize} color={iconColor} />;
+      case 'tag':
+        return <Tag size={iconSize} color={iconColor} />;
+      case 'info':
+        return <InfoCircle size={iconSize} color={iconColor} />;
+      default:
+        return null;
     }
   };
 
@@ -43,14 +51,13 @@ const InfoRow: React.FC<InfoRowProps> = ({
           {label}
         </Text>
       </View>
-      <Text 
+      <Text
         className={`font-salsa ${valueStyle}`}
-        style={{ 
+        style={{
           maxWidth: wp(45),
-          fontSize: wp(4)
+          fontSize: wp(4),
         }}
-        numberOfLines={numberOfLines}
-      >
+        numberOfLines={numberOfLines}>
         {value}
       </Text>
     </View>

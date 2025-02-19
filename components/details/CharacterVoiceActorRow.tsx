@@ -48,10 +48,10 @@ export const CharacterVoiceActorRow = ({
               style={styles.roundedImage}
             />
           </View>
-          <Text className="p-1 font-salsa text-base text-white">
+          <Text className="font-salsa p-1 text-base text-white">
             {getFormattedTitle(item.character.name)}
           </Text>
-          <Text className="p-1 font-salsa text-base text-lime-400">{item.character.cast}</Text>
+          <Text className="font-salsa p-1 text-base text-lime-400">{item.character.cast}</Text>
         </AnimatedTouchableOpacity>
 
         {/* A line to like map the character to the voice actor */}
@@ -67,10 +67,10 @@ export const CharacterVoiceActorRow = ({
               style={styles.roundedImage}
             />
           </View>
-          <Text className="p-1 font-salsa text-base text-white">
+          <Text className="font-salsa p-1 text-base text-white">
             {getFormattedTitle(item.voiceActor.name)}
           </Text>
-          <Text className="p-1 font-salsa text-base text-lime-400">{item.voiceActor.cast}</Text>
+          <Text className="font-salsa p-1 text-base text-lime-400">{item.voiceActor.cast}</Text>
         </AnimatedTouchableOpacity>
       </View>
     );

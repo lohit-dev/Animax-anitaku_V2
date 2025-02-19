@@ -1,9 +1,10 @@
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   ImageBackground,
   SafeAreaView,
@@ -13,18 +14,20 @@ import {
   TouchableOpacity,
   View,
   Share as RNShare,
+  BackHandler,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useToast } from 'react-native-toast-notifications';
 
+import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
 import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
+import EpisodeListSheet from '~/components/details/EpisodeListSheet';
+import InfoRow from '~/components/details/InfoRow';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
+import { useAppSelector, useAppDispatch } from '~/hooks/SavedAnimeHook';
 import { fetchAnimeById } from '~/services/AnimeService';
 import { Anime, AnimeInfoResponse } from '~/types';
-import { useAppSelector, useAppDispatch } from '~/hooks/SavedAnimeHook';
-import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
-import InfoRow from '~/components/details/InfoRow';
 
 export const AnimeDetails = () => {
   const nav = useRouter();
@@ -32,6 +35,7 @@ export const AnimeDetails = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const savedAnimes = useAppSelector((state) => state.savedAnimes.animes);
+  const [selectedType, setSelectedType] = useState<'sub' | 'dub'>('sub');
 
   const {
     data: anime,
@@ -51,20 +55,19 @@ export const AnimeDetails = () => {
 
   const toast = useToast();
 
-  const [isFav, setIsFav] = useState(() =>
-    savedAnimes.some(anime => anime.id === id)
-  );
+  const [isFav, setIsFav] = useState(() => savedAnimes.some((anime) => anime.id === id));
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleShare = async () => {
     try {
-      const message = 
+      const message =
         `🌟 ${animeData?.info.name.toUpperCase()} 🌟\n\n` +
         `${animeData?.moreInfo.japanese}\n` +
         `Rating: ${animeData?.info.stats.rating}\n` +
         `Episodes: ${animeData?.info.stats.episodes.sub || animeData?.info.stats.episodes.dub}\n\n` +
         `📺 Watch now on Animax!\n` +
         `- Anime to the max! 🚀`;
-  
+
       await RNShare.share({
         message,
         title: `Share ${animeData?.info.name}`,
@@ -90,25 +93,36 @@ export const AnimeDetails = () => {
         type: animeData.info.stats.type,
         episodes: {
           sub: animeData.info.stats.episodes.sub,
-          dub: animeData.info.stats.episodes.dub
+          dub: animeData.info.stats.episodes.dub,
         },
-        duration: animeData.info.stats.duration
+        duration: animeData.info.stats.duration,
       };
       dispatch(addAnime(mappedAnime));
     }
 
     setIsFav(!isFav);
-    toast.show(
-      isFav ? 'Removed from library' : 'Added to library',
-      {
-        type: 'success',
-        placement: 'bottom',
-        duration: 2000,
-      }
-    );
+    toast.show(isFav ? 'Removed from library' : 'Added to library', {
+      type: 'success',
+      placement: 'bottom',
+      duration: 2000,
+    });
   };
 
-  console.log(animeData?.info.charactersVoiceActors);
+  // console.log(animeData?.info.charactersVoiceActors);
+
+  // Add useEffect to handle back button press
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Check if bottom sheet is expanded using index
+      if (bottomSheetRef.current?.present) {
+        bottomSheetRef.current?.dismiss();
+        return true; // Prevent default back behavior
+      }
+      return false; // Allow default back behavior
+    });
+
+    return () => backHandler.remove();
+  }, []);
 
   if (isLoading) {
     return (
@@ -184,20 +198,20 @@ export const AnimeDetails = () => {
               <Text
                 ellipsizeMode="tail"
                 numberOfLines={2}
-                className={`pt-2 text-center font-salsa tracking-wider text-white ${titleStyle}`}>
+                className={`font-salsa pt-2 text-center tracking-wider text-white ${titleStyle}`}>
                 {getFormattedTitle(animeData.info.name, titleStyleFirstLetter)}
               </Text>
             </View>
 
             <View className="flex-row items-center justify-center">
-              <Text className="text-center font-salsa text-base font-semibold text-neutral-400">
+              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
                 {animeData.moreInfo.status} •
               </Text>
-              <Text className="text-center font-salsa text-base font-semibold text-neutral-400">
+              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
                 {' '}
                 {animeData.moreInfo.aired} •
               </Text>
-              <Text className="text-center font-salsa text-base font-semibold text-neutral-400">
+              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
                 {' '}
                 {animeData.moreInfo.duration}
               </Text>
@@ -215,13 +229,13 @@ export const AnimeDetails = () => {
             <TouchableOpacity onPress={handleShare}>
               <Share size="28" color="#a3e635" variant="Bulk" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { }}>
+            <TouchableOpacity onPress={() => {}}>
               <DocumentDownload size="28" color="#a3e635" variant="TwoTone" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text className="pt-3 font-salsa text-base text-neutral-300/85">
+        <Text className="font-salsa pt-3 text-base text-neutral-300/85">
           {showFullDescription
             ? animeData.info.description
             : `${animeData.info.description.substring(0, 155)}...`}
@@ -233,7 +247,6 @@ export const AnimeDetails = () => {
             </Text>
           )}
         </Text>
-
         {/* Episodes Section */}
         <View className="mt-8">
           <Text className="font-salsa text-3xl tracking-wider text-white">
@@ -243,11 +256,10 @@ export const AnimeDetails = () => {
             {animeData.info.stats.episodes.sub > 0 && (
               <TouchableOpacity
                 className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-                onPress={() => nav.push({
-                  pathname: '/anime/[id]',
-                  params: { id, type: 'sub' }
-                })}
-              >
+                onPress={() => {
+                  setSelectedType('sub');
+                  bottomSheetRef.current?.present();
+                }}>
                 <Text className="font-salsa text-lg text-white">Sub</Text>
                 <Text className="font-salsa text-base text-neutral-400">
                   {animeData.info.stats.episodes.sub} Episodes
@@ -257,11 +269,10 @@ export const AnimeDetails = () => {
             {animeData.info.stats.episodes.dub > 0 && (
               <TouchableOpacity
                 className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-                onPress={() => nav.push({
-                  pathname: '/anime/[id]',
-                  params: { id, type: 'dub' }
-                })}
-              >
+                onPress={() => {
+                  setSelectedType('dub');
+                  bottomSheetRef.current?.present();
+                }}>
                 <Text className="font-salsa text-lg text-white">Dub</Text>
                 <Text className="font-salsa text-base text-neutral-400">
                   {animeData.info.stats.episodes.dub} Episodes
@@ -270,6 +281,18 @@ export const AnimeDetails = () => {
             )}
           </View>
         </View>
+
+        {/* Episode List Sheet */}
+        <EpisodeListSheet
+          animeId={id}
+          type={selectedType}
+          bottomSheetRef={bottomSheetRef}
+          onEpisodePress={(episodeId) => {
+            console.log(`Playing ${selectedType} episode ${episodeId}`);
+          }}
+          enablePanDownToClose
+          enableBackdropPress
+        />
 
         {animeData.info.charactersVoiceActors.length > 0 && (
           <CharacterVoiceActorRow
@@ -280,14 +303,13 @@ export const AnimeDetails = () => {
         )}
 
         {/* More Info Section */}
-        <View className="mt-8 mb-6">
+        <View className="mb-6 mt-8">
           <Text className="font-salsa text-3xl tracking-wider text-white">
             {getFormattedTitle('More Info', 'text-4xl font-semibold')}
           </Text>
           <View
             className="mt-4 space-y-4 rounded-3xl bg-neutral-900/60 p-5"
-            style={{ width: wp(90) }}
-          >
+            style={{ width: wp(90) }}>
             <InfoRow
               label="Japanese"
               value={animeData.moreInfo.japanese}

@@ -1,5 +1,5 @@
 {
-  "cesVersion": "2.11.24",
+  "cesVersion": "2.12.2",
   "projectName": "animax",
   "packages": [
     {
@@ -20,16 +20,16 @@
     "overwrite": false,
     "importAlias": true,
     "packageManager": "yarn",
-    "eas": false
+    "eas": true
   },
   "packageManager": {
     "type": "yarn",
     "version": "1.22.22"
   },
   "os": {
-    "type": "Windows_NT",
-    "platform": "win32",
+    "type": "Linux",
+    "platform": "linux",
     "arch": "x64",
-    "kernelVersion": "10.0.22631"
+    "kernelVersion": "6.12.13-200.fc41.x86_64"
   }
 }

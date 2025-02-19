@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import {
   Notification,
   Profile2User,
@@ -11,9 +12,18 @@ import {
   Logout,
 } from 'iconsax-react-native';
 import { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View, Switch, Image, StatusBar, Platform } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Switch,
+  Image,
+  StatusBar,
+  Platform,
+} from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 
 const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -22,7 +32,7 @@ const Settings = () => {
   const router = useRouter();
 
   const handleLogout = () => {
-  //  
+    //
   };
 
   const settingsOptions = [
@@ -94,13 +104,13 @@ const Settings = () => {
         />
       </View>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="items-center px-6 pt-8 mt-16">
+        <View className="mt-16 items-center px-6 pt-8">
           <Animated.View entering={FadeInDown.delay(100)} className="items-center">
             <Image
               source={{ uri: 'https://your-default-avatar-url.com' }}
               className="h-24 w-24 rounded-full border-2 border-lime-400"
             />
-            <Text className="mt-2 font-salsa text-2xl text-white">John Doe</Text>
+            <Text className="font-salsa mt-2 text-2xl text-white">John Doe</Text>
             <Text className="font-salsa text-sm text-neutral-400">john.doe@example.com</Text>
           </Animated.View>
         </View>

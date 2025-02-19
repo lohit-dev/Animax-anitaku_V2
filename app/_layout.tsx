@@ -1,18 +1,20 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
-import { Stack, Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { Provider } from 'react-redux';
-import { store } from './_store/store';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastProvider } from 'react-native-toast-notifications';
+import { Provider } from 'react-redux';
+
+import { store } from './_store/store';
 
 import { useColorScheme } from '~/hooks/useColorScheme';
-
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -36,8 +38,8 @@ export default function RootLayout() {
         console.error('Error setting navigation bar:', error);
       }
     };
-    setNav();
 
+    setNav();
     if (loaded) {
       SplashScreen.hideAsync();
     }
@@ -49,23 +51,27 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <StatusBar
-              translucent
-              backgroundColor="transparent"
-              animated
-              style="light"
-              hideTransitionAnimation="fade"
-            />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-          </ThemeProvider>
-        </ToastProvider>
-      </QueryClientProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <QueryClientProvider client={queryClient}>
+            <ToastProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar
+                  translucent
+                  backgroundColor="transparent"
+                  animated
+                  style="light"
+                  hideTransitionAnimation="fade"
+                />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                </Stack>
+              </ThemeProvider>
+            </ToastProvider>
+          </QueryClientProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
     </Provider>
   );
 }
