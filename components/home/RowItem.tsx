@@ -6,6 +6,7 @@ import AnimeCard from '../shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
 import { Anime } from '~/types';
+import { router } from 'expo-router';
 
 type RowItemProps = {
   name: string;
@@ -22,6 +23,9 @@ const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowI
     return (
       <AnimatedTouchableOpacity
         entering={FadeInRight.delay(index * 200).duration(500)}
+        onPress={() => {
+          router.push({ pathname: '/anime/[id]', params: { id: item.id, poster: item.poster } });
+        }}
         className="flex px-2">
         <View className="overflow-hidden rounded-full">
           <ImageBackground

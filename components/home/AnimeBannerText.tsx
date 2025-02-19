@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -15,9 +15,10 @@ type AnimeBannerTextProps = {
   item: Anime;
   index: number;
   x: SharedValue<number>;
+  onPress: () => void;
 };
 
-const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
+const AnimeBannerText = ({ item, index, x, onPress }: AnimeBannerTextProps) => {
   const { width } = useWindowDimensions();
   const titleHeight = item.jname.length > 22 ? hp(12) : hp(9);
 
@@ -43,11 +44,12 @@ const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
   });
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      <View
-        className="absolute bottom-0 left-0 right-0 px-3 text-center text-white"
-        style={[styles.title, { height: titleHeight }]}>
-        <Text
+    <Pressable onPress={onPress}>
+      <Animated.View style={[styles.container, animatedStyle]}>
+        <View
+          className="absolute bottom-0 left-0 right-0 px-3 text-center text-white"
+          style={[styles.title, { height: titleHeight }]}>
+          <Text
           className="font-salsa pt-3 text-center text-3xl font-semibold text-white"
           numberOfLines={2}
           ellipsizeMode="tail">
@@ -65,9 +67,10 @@ const AnimeBannerText = ({ item, index, x }: AnimeBannerTextProps) => {
               )}
             </React.Fragment>
           ))}
+          </View>
         </View>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 };
 

@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useToast } from 'react-native-toast-notifications';
+import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 
 import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
 import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
@@ -60,17 +62,23 @@ export const AnimeDetails = () => {
 
   const handleShare = async () => {
     try {
+      const deepLink = `animax://anime/${id}`;
+      const webFallback = 'https://github.com/Emperor-Grey/Animax-anitaku_V2';
+
       const message =
         `🌟 ${animeData?.info.name.toUpperCase()} 🌟\n\n` +
         `${animeData?.moreInfo.japanese}\n` +
         `Rating: ${animeData?.info.stats.rating}\n` +
         `Episodes: ${animeData?.info.stats.episodes.sub || animeData?.info.stats.episodes.dub}\n\n` +
         `📺 Watch now on Animax!\n` +
-        `- Anime to the max! 🚀`;
+        `- Anime to the max! 🚀\n\n` +
+        `📱 Open in Animax: ${deepLink}\n` +
+        `🌐 Or visit: ${webFallback}`;
 
       await RNShare.share({
         message,
         title: `Share ${animeData?.info.name}`,
+        url: deepLink,
       });
     } catch (error) {
       console.error(error);
@@ -111,18 +119,20 @@ export const AnimeDetails = () => {
   // console.log(animeData?.info.charactersVoiceActors);
 
   // Add useEffect to handle back button press
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      // Check if bottom sheet is expanded using index
-      if (bottomSheetRef.current?.present) {
-        bottomSheetRef.current?.dismiss();
-        return true; // Prevent default back behavior
-      }
-      return false; // Allow default back behavior
-    });
+  useFocusEffect(
+    React.useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (bottomSheetRef.current?.present) {
+          bottomSheetRef.current?.dismiss();
+          return true;
+        }
+        nav.back();
+        return true;
+      });
 
-    return () => backHandler.remove();
-  }, []);
+      return () => backHandler.remove();
+    }, [nav])
+  );
 
   if (isLoading) {
     return (

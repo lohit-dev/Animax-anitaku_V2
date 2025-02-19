@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastProvider } from 'react-native-toast-notifications';
 import { Provider } from 'react-redux';
+import * as Linking from 'expo-linking';
 
 import { store } from './_store/store';
 
@@ -20,6 +21,8 @@ import '../global.css';
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
+
+const prefix = Linking.createURL('/');
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -49,6 +52,22 @@ export default function RootLayout() {
     return null;
   }
 
+  const linking = {
+    prefixes: ['animax://', 'https://animax.app'],
+    config: {
+      screens: {
+        index: '',
+        '(tabs)': {
+          screens: {
+            Home: '',
+          }
+        },
+        'anime/[id]': 'anime/:id',
+        'anime/watch/[episodeId]': 'anime/watch/:episodeId',
+      },
+    },
+  };
+
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -65,7 +84,7 @@ export default function RootLayout() {
                 />
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false, }} initialParams={{ linking }} />
                 </Stack>
               </ThemeProvider>
             </ToastProvider>

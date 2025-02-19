@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -128,7 +129,18 @@ const Home = () => {
           anime.map((animeItem: Anime, index: number) => {
             return (
               currentIndex === index && (
-                <HomeBanner key={animeItem.id} index={index} item={animeItem} x={x} />
+                <HomeBanner
+                  key={animeItem.id}
+                  index={index}
+                  item={animeItem}
+                  x={x}
+                  onPress={() => {
+                    router.push({
+                      pathname: '/anime/[id]',
+                      params: { id: animeItem.id, poster: animeItem.poster },
+                    });
+                  }}
+                />
               )
             );
           })}
@@ -160,7 +172,12 @@ const Home = () => {
             onEndReachedThreshold={0.5}
             onEndReached={() => setAnime([...anime, ...(HomePageData?.spotlightAnimes || [])])}
             renderItem={({ item, index }) => {
-              return <AnimeBannerText item={item} index={index} x={x} />;
+              return <AnimeBannerText item={item} index={index} x={x} onPress={() => {
+                router.push({
+                  pathname: '/anime/[id]',
+                  params: { id: item.id, poster: item.poster },
+                });
+              }} />;
             }}
           />
 

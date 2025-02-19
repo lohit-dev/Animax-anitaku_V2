@@ -19,21 +19,14 @@
         }
       ],
       [
-        "react-native-video",
+        "expo-video",
         {
-          "enableHlsEngine": true,
-          "enableAndroidPictureInPicture": true,
-          "enableCaching": true,
-          "enableNotificationControls": true,
-          "androidExtensions": {
-            "useExoplayerRtsp": true,
-            "useExoplayerSmoothStreaming": true,
-            "useExoplayerHls": true,
-            "useExoplayerDash": true
-          }
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -47,7 +40,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.king-grey.animax"
@@ -58,7 +53,24 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.king_grey.animax",
-      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "animax"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "extra": {
       "router": {

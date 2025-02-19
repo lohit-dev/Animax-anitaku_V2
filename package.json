@@ -34,6 +34,7 @@
     "expo-splash-screen": "~0.29.22",
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.8",
+    "expo-video": "~2.0.5",
     "expo-web-browser": "~14.0.2",
     "iconsax-react-native": "^0.0.8",
     "lottie-react-native": "^7.2.2",
@@ -50,6 +51,7 @@
     "react-native-toast-notifications": "^3.4.0",
     "react-native-video": "^6.10.1",
     "react-native-web": "~0.19.10",
+    "react-native-webview": "13.12.5",
     "react-redux": "^9.2.0",
     "tailwind-merge": "^3.0.1"
   },
