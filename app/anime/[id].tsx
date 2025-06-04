@@ -1,10 +1,11 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   ImageBackground,
   SafeAreaView,
@@ -18,8 +19,6 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useToast } from 'react-native-toast-notifications';
-import { useFocusEffect } from '@react-navigation/native';
-import React from 'react';
 
 import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
 import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';

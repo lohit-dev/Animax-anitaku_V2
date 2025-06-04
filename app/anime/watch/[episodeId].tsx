@@ -1,13 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
+import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, Modal, Pressable, BackHandler } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  BackHandler,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
-import { fetchAnimeStreamingLink } from '~/services/AnimeService';
+
 import { useBackButton } from '~/hooks/useBackButton';
+import { fetchAnimeStreamingLink } from '~/services/AnimeService';
 
 interface StreamingResponse {
   success: boolean;
@@ -51,11 +60,13 @@ const WatchScreen = () => {
   const [allCues, setAllCues] = useState<any[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const webViewRef = useRef<WebView>(null);
-  const [subtitles, setSubtitles] = useState<Array<{
-    startTime: number;
-    endTime: number;
-    text: string;
-  }>>([]);
+  const [subtitles, setSubtitles] = useState<
+    {
+      startTime: number;
+      endTime: number;
+      text: string;
+    }[]
+  >([]);
 
   const {
     data: streamingData,
@@ -74,7 +85,7 @@ const WatchScreen = () => {
 
   const timeUpdate = useEvent(player, 'timeUpdate', {
     currentTime: 0,
-    duration: 0
+    duration: 0,
   });
 
   useFocusEffect(
@@ -97,13 +108,13 @@ const WatchScreen = () => {
       const currentTimeInSeconds = timeUpdate.currentTime;
       setCurrentTime(currentTimeInSeconds);
       setDuration(timeUpdate?.duration || 0);
-      
+
       if (selectedSubtitle && subtitles.length > 0) {
         const subtitle = getCurrentSubtitle(currentTimeInSeconds);
-        console.log('Time update:', { 
-          currentTime: currentTimeInSeconds, 
+        console.log('Time update:', {
+          currentTime: currentTimeInSeconds,
           hasSubtitle: !!subtitle,
-          subtitlesCount: subtitles.length 
+          subtitlesCount: subtitles.length,
         });
         setSubtitleText(subtitle);
       }
@@ -118,7 +129,7 @@ const WatchScreen = () => {
       }
       const text = await response.text();
       const lines = text.split('\n');
-      const cues: Array<{ startTime: number; endTime: number; text: string }> = [];
+      const cues: { startTime: number; endTime: number; text: string }[] = [];
       let currentCue: any = null;
       let textBuffer: string[] = [];
 
@@ -134,39 +145,39 @@ const WatchScreen = () => {
 
           try {
             const [start, end] = trimmedLine.split(' --> ');
-            
+
             const parseTimestamp = (timestamp: string) => {
               const parts = timestamp.trim().split(':');
-              let hours = 0, minutes = 0, seconds = 0, milliseconds = 0;
+              let hours = 0,
+                minutes = 0,
+                seconds = 0,
+                milliseconds = 0;
 
-              if (parts.length === 3) { // HH:MM:SS.mmm
+              if (parts.length === 3) {
+                // HH:MM:SS.mmm
                 hours = parseInt(parts[0]);
                 minutes = parseInt(parts[1]);
                 const [secs, ms] = parts[2].split('.');
                 seconds = parseInt(secs);
                 milliseconds = parseInt(ms || '0');
-              } else if (parts.length === 2) { // MM:SS.mmm
+              } else if (parts.length === 2) {
+                // MM:SS.mmm
                 minutes = parseInt(parts[0]);
                 const [secs, ms] = parts[1].split('.');
                 seconds = parseInt(secs);
                 milliseconds = parseInt(ms || '0');
               }
 
-              return (
-                hours * 3600 + 
-                minutes * 60 + 
-                seconds + 
-                milliseconds / 1000
-              );
+              return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
             };
 
             const startTime = parseTimestamp(start);
             const endTime = parseTimestamp(end);
 
-            currentCue = { 
-              startTime, 
-              endTime, 
-              text: '' 
+            currentCue = {
+              startTime,
+              endTime,
+              text: '',
             };
             textBuffer = [];
           } catch (parseError) {
@@ -207,15 +218,20 @@ const WatchScreen = () => {
       console.log('No time or subtitles available:', { time, subtitlesLength: subtitles.length });
       return '';
     }
-    
-    const subtitle = subtitles.find(sub => {
+
+    const subtitle = subtitles.find((sub) => {
       const isInRange = time >= sub.startTime && time <= sub.endTime;
       if (isInRange) {
-        console.log('Found subtitle:', { time, start: sub.startTime, end: sub.endTime, text: sub.text });
+        console.log('Found subtitle:', {
+          time,
+          start: sub.startTime,
+          end: sub.endTime,
+          text: sub.text,
+        });
       }
       return isInRange;
     });
-    
+
     return subtitle?.text || '';
   };
 
@@ -277,13 +293,13 @@ const WatchScreen = () => {
             <View className="flex-1 justify-end pb-3">
               <View className="mx-4 items-center">
                 <View className="rounded-lg bg-black/40 px-4 py-1">
-                  <Text 
+                  <Text
                     className="text-center text-xl text-white"
                     style={{
                       textShadowColor: 'rgba(0, 0, 0, 0.75)',
                       textShadowOffset: { width: 2, height: 2 },
                       textShadowRadius: 3,
-                      opacity:1
+                      opacity: 1,
                     }}>
                     {subtitleText.replace(/<\/?i>/g, '')}
                   </Text>
@@ -362,9 +378,10 @@ const WatchScreen = () => {
       </Modal>
 
       {isFullscreen && selectedSubtitle && subtitleText && (
-        <View style={{ position: 'absolute', bottom: 100, left: 0, right: 0, alignItems: 'center' }}>
+        <View
+          style={{ position: 'absolute', bottom: 100, left: 0, right: 0, alignItems: 'center' }}>
           <View className="rounded-lg bg-black/75 px-4 py-2">
-            <Text 
+            <Text
               className="text-center text-xl text-white"
               style={{
                 textShadowColor: 'rgba(0, 0, 0, 0.75)',

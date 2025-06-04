@@ -1,6 +1,6 @@
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { BackHandler } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
 
 export const useBackButton = () => {
   const router = useRouter();

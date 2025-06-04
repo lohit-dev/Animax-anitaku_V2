@@ -2,6 +2,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
+import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -11,7 +12,6 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastProvider } from 'react-native-toast-notifications';
 import { Provider } from 'react-redux';
-import * as Linking from 'expo-linking';
 
 import { store } from './_store/store';
 
@@ -60,7 +60,7 @@ export default function RootLayout() {
         '(tabs)': {
           screens: {
             Home: '',
-          }
+          },
         },
         'anime/[id]': 'anime/:id',
         'anime/watch/[episodeId]': 'anime/watch/:episodeId',
@@ -84,7 +84,11 @@ export default function RootLayout() {
                 />
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false, }} initialParams={{ linking }} />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                    initialParams={{ linking }}
+                  />
                 </Stack>
               </ThemeProvider>
             </ToastProvider>

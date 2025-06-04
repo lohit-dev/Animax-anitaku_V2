@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
@@ -6,7 +7,6 @@ import AnimeCard from '../shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
 import { Anime } from '~/types';
-import { router } from 'expo-router';
 
 type RowItemProps = {
   name: string;

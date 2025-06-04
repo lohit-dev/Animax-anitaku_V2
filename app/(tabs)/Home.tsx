@@ -172,12 +172,19 @@ const Home = () => {
             onEndReachedThreshold={0.5}
             onEndReached={() => setAnime([...anime, ...(HomePageData?.spotlightAnimes || [])])}
             renderItem={({ item, index }) => {
-              return <AnimeBannerText item={item} index={index} x={x} onPress={() => {
-                router.push({
-                  pathname: '/anime/[id]',
-                  params: { id: item.id, poster: item.poster },
-                });
-              }} />;
+              return (
+                <AnimeBannerText
+                  item={item}
+                  index={index}
+                  x={x}
+                  onPress={() => {
+                    router.push({
+                      pathname: '/anime/[id]',
+                      params: { id: item.id, poster: item.poster },
+                    });
+                  }}
+                />
+              );
             }}
           />
 

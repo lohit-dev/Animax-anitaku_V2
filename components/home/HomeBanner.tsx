@@ -26,11 +26,11 @@ const HomeBanner = ({ index, item, x, onPress }: HomeBannerProps) => {
       Math.abs(x.value - currentOffset) < width / 2
         ? 1
         : interpolate(
-          x.value,
-          [currentOffset - width, currentOffset + width],
-          [0, 1, 0],
-          Extrapolation.CLAMP
-        );
+            x.value,
+            [currentOffset - width, currentOffset + width],
+            [0, 1, 0],
+            Extrapolation.CLAMP
+          );
 
     return {
       opacity: opacityAnim,

@@ -50,23 +50,23 @@ const AnimeBannerText = ({ item, index, x, onPress }: AnimeBannerTextProps) => {
           className="absolute bottom-0 left-0 right-0 px-3 text-center text-white"
           style={[styles.title, { height: titleHeight }]}>
           <Text
-          className="font-salsa pt-3 text-center text-3xl font-semibold text-white"
-          numberOfLines={2}
-          ellipsizeMode="tail">
-          {getFormattedTitle(item.jname, 'text-4xl font-salsa')}
-        </Text>
-        <View className="flex-row flex-wrap items-center justify-center px-14">
-          {item?.otherInfo?.map((info, i) => (
-            <React.Fragment key={i}>
-              <Text
-                className={`font-salsa text-base font-semibold text-gray-300 ${i === 0 ? 'text-lg text-lime-300' : ''}`}>
-                {info}
-              </Text>
-              {i < info.length - 1 && (
-                <Text className="font-salsa text-2xl text-lime-300"> • </Text>
-              )}
-            </React.Fragment>
-          ))}
+            className="font-salsa pt-3 text-center text-3xl font-semibold text-white"
+            numberOfLines={2}
+            ellipsizeMode="tail">
+            {getFormattedTitle(item.jname, 'text-4xl font-salsa')}
+          </Text>
+          <View className="flex-row flex-wrap items-center justify-center px-14">
+            {item?.otherInfo?.map((info, i) => (
+              <React.Fragment key={i}>
+                <Text
+                  className={`font-salsa text-base font-semibold text-gray-300 ${i === 0 ? 'text-lg text-lime-300' : ''}`}>
+                  {info}
+                </Text>
+                {i < info.length - 1 && (
+                  <Text className="font-salsa text-2xl text-lime-300"> • </Text>
+                )}
+              </React.Fragment>
+            ))}
           </View>
         </View>
       </Animated.View>
