@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ImageBackground,
   SafeAreaView,

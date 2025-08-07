@@ -1,7 +1,7 @@
 import { BottomSheetModal, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Play, ArrangeHorizontalSquare, SearchNormal1 } from 'iconsax-react-native';
+import { Play, SearchNormal1 } from 'iconsax-react-native';
 import { useCallback, useMemo, useState, RefObject } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';

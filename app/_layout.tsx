@@ -2,7 +2,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import * as Linking from 'expo-linking';
+// import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -22,7 +22,7 @@ import '../global.css';
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
-const prefix = Linking.createURL('/');
+// const prefix = Linking.createURL('/');
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -81,6 +81,7 @@ export default function RootLayout() {
                   animated
                   style="light"
                   hideTransitionAnimation="fade"
+                  hidden
                 />
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" options={{ headerShown: false }} />

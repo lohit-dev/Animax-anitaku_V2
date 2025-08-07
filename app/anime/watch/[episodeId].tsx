@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEvent } from 'expo';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
-import { TimeUpdateEventPayload, useVideoPlayer, VideoView } from 'expo-video';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,9 @@ import {
   Pressable,
   BackHandler,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+// import { WebView } from 'react-native-webview';
 
-import { useBackButton } from '~/hooks/useBackButton';
+// import { useBackButton } from '~/hooks/useBackButton';
 import { fetchAnimeStreamingLink } from '~/services/AnimeService';
 
 interface StreamingResponse {
@@ -44,9 +44,8 @@ interface StreamingResponse {
 
 const WatchScreen = () => {
   const router = useRouter();
-  const { episodeId, animeId, type } = useLocalSearchParams<{
+  const { episodeId, type } = useLocalSearchParams<{
     episodeId: string;
-    animeId: string;
     type: 'sub' | 'dub';
   }>();
 
@@ -57,9 +56,9 @@ const WatchScreen = () => {
   const [currentSubtitleLabel, setCurrentSubtitleLabel] = useState<string>('None');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [subtitleText, setSubtitleText] = useState<string>('');
-  const [allCues, setAllCues] = useState<any[]>([]);
+  // const [allCues, setAllCues] = useState<any[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const webViewRef = useRef<WebView>(null);
+  // const _webViewRef = useRef<WebView>(null);
   const [subtitles, setSubtitles] = useState<
     {
       startTime: number;
@@ -71,7 +70,7 @@ const WatchScreen = () => {
   const {
     data: streamingData,
     isLoading,
-    error,
+    // error,
   } = useQuery<StreamingResponse>({
     queryKey: ['streaming', episodeId, type],
     queryFn: () => fetchAnimeStreamingLink(episodeId, type),
@@ -85,7 +84,9 @@ const WatchScreen = () => {
 
   const timeUpdate = useEvent(player, 'timeUpdate', {
     currentTime: 0,
-    duration: 0,
+    currentLiveTimestamp: 0,
+    currentOffsetFromLive: 0,
+    bufferedPosition: 0,
   });
 
   useFocusEffect(
@@ -107,7 +108,7 @@ const WatchScreen = () => {
     if (timeUpdate?.currentTime !== undefined) {
       const currentTimeInSeconds = timeUpdate.currentTime;
       setCurrentTime(currentTimeInSeconds);
-      setDuration(timeUpdate?.duration || 0);
+      setDuration(timeUpdate?.currentLiveTimestamp || 0);
 
       if (selectedSubtitle && subtitles.length > 0) {
         const subtitle = getCurrentSubtitle(currentTimeInSeconds);
@@ -155,17 +156,17 @@ const WatchScreen = () => {
 
               if (parts.length === 3) {
                 // HH:MM:SS.mmm
-                hours = parseInt(parts[0]);
-                minutes = parseInt(parts[1]);
+                hours = parseInt(parts[0], 10);
+                minutes = parseInt(parts[1], 10);
                 const [secs, ms] = parts[2].split('.');
-                seconds = parseInt(secs);
-                milliseconds = parseInt(ms || '0');
+                seconds = parseInt(secs, 10);
+                milliseconds = parseInt(ms || '0', 10);
               } else if (parts.length === 2) {
                 // MM:SS.mmm
-                minutes = parseInt(parts[0]);
+                minutes = parseInt(parts[0], 10);
                 const [secs, ms] = parts[1].split('.');
-                seconds = parseInt(secs);
-                milliseconds = parseInt(ms || '0');
+                seconds = parseInt(secs, 10);
+                milliseconds = parseInt(ms || '0', 10);
               }
 
               return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;

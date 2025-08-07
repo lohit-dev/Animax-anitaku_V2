@@ -4,8 +4,6 @@ import {
   Notification,
   Profile2User,
   SecuritySafe,
-  Setting2,
-  Star1,
   VideoPlay,
   ArrowRight2,
   Moon,
@@ -20,8 +18,6 @@ import {
   View,
   Switch,
   Image,
-  StatusBar,
-  Platform,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -29,7 +25,7 @@ const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [autoPlay, setAutoPlay] = useState(true);
-  const router = useRouter();
+  // const _router = useRouter();
 
   const handleLogout = () => {
     //

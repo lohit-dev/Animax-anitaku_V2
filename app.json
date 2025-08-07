@@ -43,7 +43,11 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.king-grey.animax"
+      "bundleIdentifier": "com.king-grey.animax",
+      "infoPlist": {
+        "UIStatusBarHidden": false,
+        "UIViewControllerBasedStatusBarAppearance": false
+      }
     },
     "android": {
       "adaptiveIcon": {
