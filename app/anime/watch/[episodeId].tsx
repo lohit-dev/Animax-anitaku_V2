@@ -116,7 +116,7 @@ const WatchScreen = () => {
       return {
         uri: url,
         language: getLanguageCode(langName),
-        title: track.lang || track.label || 'Unknown',
+        title: track.label || track.lang || 'Unknown',
         type,
       };
     });
@@ -171,16 +171,19 @@ const WatchScreen = () => {
     );
   }
 
-  // Prepare textTracks for react-native-video (in source object)
-  const videoSourceWithTracks = {
+  // Prepare video source
+  const videoSourceConfig = {
     uri: videoSource,
     headers: videoHeaders ? { Referer: videoHeaders.Referer || '' } : undefined,
-    textTracks: validSubtitleTracks.map((track) => ({
-      title: track.title,
-      language: track.language,
-      type: track.type,
-      uri: track.uri,
-    })),
+    textTracks:
+      validSubtitleTracks.length > 0
+        ? validSubtitleTracks.map((track: SubtitleTrack) => ({
+            title: track.title || track.language,
+            language: track.language,
+            type: track.type,
+            uri: track.uri,
+          }))
+        : undefined,
   };
 
   return (
@@ -202,7 +205,7 @@ const WatchScreen = () => {
       <View className="relative h-64 w-full">
         <Video
           ref={videoRef}
-          source={videoSourceWithTracks}
+          source={videoSourceConfig}
           style={{ width: '100%', height: '100%', position: 'absolute' }}
           resizeMode="contain"
           controls
@@ -223,6 +226,21 @@ const WatchScreen = () => {
           }}
           onPlaybackStateChanged={(data) => {
             setIsPlaying(data.isPlaying);
+          }}
+          onTextTracks={(data) => {
+            // Handle available text tracks change
+            console.log('Text tracks available:', data.textTracks);
+            // Auto-select first track if none selected
+            if (selectedSubtitleIndex === null && data.textTracks && data.textTracks.length > 0) {
+              const firstSelectedIndex = data.textTracks.findIndex((track) => track.selected);
+              if (firstSelectedIndex !== -1) {
+                setSelectedSubtitleIndex(firstSelectedIndex);
+              }
+            }
+          }}
+          onTextTrackDataChanged={(data) => {
+            // Handle subtitle data changes
+            console.log('Subtitle data changed:', data.subtitleTracks);
           }}
           selectedTextTrack={
             selectedSubtitleIndex !== null

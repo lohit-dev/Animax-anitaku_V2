@@ -13,18 +13,11 @@
     "plugins": [
       "expo-router",
       [
-        "expo-dev-launcher",
-        {
-          "launchMode": "most-recent"
-        }
-      ],
-      [
         "expo-navigation-bar",
         {
           "behavior": "overlay-swipe"
         }
       ],
-
       "expo-font",
       "expo-web-browser",
       [
