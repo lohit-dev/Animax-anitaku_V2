@@ -19,14 +19,26 @@
         }
       ],
       [
-        "expo-video",
+        "expo-navigation-bar",
         {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
+          "behavior": "overlay-swipe"
         }
       ],
+
       "expo-font",
-      "expo-video"
+      "expo-web-browser",
+      [
+        "react-native-video",
+        {
+          "enableNotificationControls": true,
+          "androidExtensions": {
+            "useExoplayerRtsp": false,
+            "useExoplayerSmoothStreaming": true,
+            "useExoplayerHls": true,
+            "useExoplayerDash": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

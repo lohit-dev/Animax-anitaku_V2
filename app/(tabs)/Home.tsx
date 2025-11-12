@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   useWindowDimensions,
   View,
@@ -16,6 +15,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AnimeBannerText from '~/components/home/AnimeBannerText';
 import Gradient from '~/components/home/Gradient';
@@ -43,7 +43,7 @@ const Home = () => {
 
   const x = useSharedValue(0);
   const ref = useAnimatedRef<Animated.FlatList<any>>();
-  const interval = useRef<NodeJS.Timeout>();
+  const interval = useRef<NodeJS.Timeout>(null);
 
   const viewabilityConfig: ViewabilityConfig = {
     itemVisiblePercentThreshold: 50,
@@ -83,11 +83,11 @@ const Home = () => {
         });
       }, 4000);
     } else {
-      clearInterval(interval.current);
+      clearInterval(interval.current as NodeJS.Timeout);
     }
 
     return () => {
-      clearInterval(interval.current);
+      clearInterval(interval.current as NodeJS.Timeout);
     };
   }, [isAutoPlay, currentIndex, anime.length, width]);
 

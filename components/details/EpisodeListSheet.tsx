@@ -150,7 +150,7 @@ const EpisodeListSheet = ({
       }}
       backgroundStyle={{ backgroundColor: '#12140e' }}
       handleIndicatorStyle={{ backgroundColor: '#4a4a4a' }}>
-      <View className="flex-1">
+      <View className="flex-1 px-2">
         <View className="border-b border-neutral-800 px-4 py-3">
           <Text className="font-salsa text-2xl text-white">
             {type === 'sub' ? 'Subbed' : 'Dubbed'} Episodes
@@ -214,7 +214,7 @@ const EpisodeListSheet = ({
             <BottomSheetFlatList
               data={filteredAndSortedEpisodes}
               renderItem={renderEpisodeCard}
-              keyExtractor={(item) => item.episodeId}
+              keyExtractor={(item: Episode) => item.episodeId}
               contentContainerStyle={{ paddingVertical: 16 }}
             />
           )}

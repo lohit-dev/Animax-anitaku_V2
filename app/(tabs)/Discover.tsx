@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import LottieView from 'lottie-react-native';
 import { useEffect, useState } from 'react';
-import { FlatList, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { FlatList, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import RowItem from '~/components/home/RowItem';
 import SearchInput from '~/components/search/SearchInput';

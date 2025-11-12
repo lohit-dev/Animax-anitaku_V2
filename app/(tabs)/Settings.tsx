@@ -1,5 +1,4 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
 import {
   Notification,
   Profile2User,
@@ -10,16 +9,9 @@ import {
   Logout,
 } from 'iconsax-react-native';
 import { useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  Switch,
-  Image,
-} from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, Switch, Image } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);

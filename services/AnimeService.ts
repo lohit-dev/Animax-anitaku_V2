@@ -6,7 +6,7 @@ import {
   SearchResponse,
 } from '~/types';
 
-const BASE_URL = 'https://aniwatchapi-kappa.vercel.app/';
+const BASE_URL = 'https://aniwatch-api-ruby-six.vercel.app';
 
 // Utility function to fetch data
 async function fetchData(endpoint: string): Promise<any> {

@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView, ScrollView, Text, View, Dimensions } from 'react-native';
+import { ScrollView, Text, View, Dimensions } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AnimeCard from '~/components/shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';

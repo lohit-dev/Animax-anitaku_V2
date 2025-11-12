@@ -8,7 +8,6 @@ import LottieView from 'lottie-react-native';
 import React, { useRef, useState } from 'react';
 import {
   ImageBackground,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,6 +17,7 @@ import {
   BackHandler,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
 
 import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
@@ -173,6 +173,7 @@ export const AnimeDetails = () => {
   return (
     <ScrollView className="flex-1 bg-neutral-950">
       <AnimatedImageBackground
+        // @ts-ignore
         sharedTransitionTag="image"
         source={{ uri: animeData.info.poster }}
         resizeMode="cover"
@@ -295,8 +296,8 @@ export const AnimeDetails = () => {
         <EpisodeListSheet
           animeId={id}
           type={selectedType}
-          bottomSheetRef={bottomSheetRef}
-          onEpisodePress={(episodeId) => {
+          bottomSheetRef={bottomSheetRef as React.RefObject<BottomSheetModal>}
+          onEpisodePress={(episodeId: string) => {
             console.log(`Playing ${selectedType} episode ${episodeId}`);
           }}
           enablePanDownToClose

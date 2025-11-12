@@ -1,8 +1,9 @@
 import { SearchNormal, Thorchain } from 'iconsax-react-native';
 import React from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type SearchInputProps = {
   text: string;

@@ -34,8 +34,9 @@ export default function RootLayout() {
     const setNav = async () => {
       try {
         if (Platform.OS === 'android') {
-          await NavigationBar.setVisibilityAsync('hidden');
-          await NavigationBar.setBehaviorAsync('inset-swipe');
+          // await NavigationBar.setPositionAsync('absolute');
+          // await NavigationBar.setVisibilityAsync('hidden');
+          // await NavigationBar.setBehaviorAsync('overlay-swipe');
         }
       } catch (error) {
         console.error('Error setting navigation bar:', error);
