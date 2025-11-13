@@ -6,7 +6,7 @@ import {
   SearchResponse,
 } from '~/types';
 
-const BASE_URL = 'https://aniwatch-api-ruby-six.vercel.app';
+const BASE_URL = '';
 
 // Utility function to fetch data
 async function fetchData(endpoint: string): Promise<any> {
@@ -24,6 +24,20 @@ async function fetchData(endpoint: string): Promise<any> {
 export const fetchHomePage = async (): Promise<AnimeData> => {
   const data = await fetchData('api/v2/hianime/home');
   // console.log(data);
+  return data?.data;
+};
+
+enum SortOption {
+  All = 'all',
+  Other = 'other',
+  '0-9' = '0-9',
+}
+
+export const fetchAToZAnime = async (
+  sortOption: SortOption,
+  page: number = 1
+): Promise<AnimeData> => {
+  const data = await fetchData(`api/v2/hianime/azlist/${sortOption}?page=${page}`);
   return data?.data;
 };
 
@@ -51,6 +65,14 @@ export const fetchCategory = async (category: string): Promise<CategoryResponse>
   return data;
 };
 
+export const fetchProducerAnime = async (
+  producer: string, // only in kebab case
+  page: number = 1
+): Promise<AnimeData> => {
+  const data = await fetchData(`api/v2/hianime/producer/${producer}?page=${page}`);
+  return data?.data;
+};
+
 export const fetchAnimeById = async (animeId: string): Promise<AnimeInfoResponse> => {
   const data = await fetchData(`api/v2/hianime/anime/${animeId}`);
   // console.log(data);
@@ -63,14 +85,19 @@ export const fetchAnimeEpisode = async (animeId: string) => {
   return data;
 };
 
+export enum Type {
+  SUB = 'sub',
+  DUB = 'dub',
+}
+
 export const fetchAnimeStreamingLink = async (
   episodeId: string,
-  type: string,
+  type: Type,
   server: string = 'hd-1'
 ) => {
   const data = await fetchData(
     `api/v2/hianime/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${type}`
   );
-  console.log(data);
+  // console.log(data);
   return data;
 };

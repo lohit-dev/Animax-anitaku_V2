@@ -2227,6 +2227,11 @@
     "@urql/core" "^5.1.2"
     wonka "^6.3.2"
 
+"@wxhccc/subtitle-parser@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@wxhccc/subtitle-parser/-/subtitle-parser-1.0.1.tgz#9685d5053ed9493b51e0e7eff8558307bfec9771"
+  integrity sha512-NKmwqb/lduQz/y04lw95k75GLmxKd8nVdERJPqKVXu5+QAW7/OpS+fCvBQexcFDTFkAUS9FSVVreClUpY4xRpg==
+
 "@xmldom/xmldom@^0.8.8":
   version "0.8.11"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.11.tgz#b79de2d67389734c57c52595f7a7305e30c2d608"
@@ -4426,6 +4431,11 @@ https-proxy-agent@^7.0.5:
   dependencies:
     agent-base "^7.1.2"
     debug "4"
+
+husky@^9.1.7:
+  version "9.1.7"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-9.1.7.tgz#d46a38035d101b46a70456a850ff4201344c0b2d"
+  integrity sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==
 
 hyphenate-style-name@^1.0.3:
   version "1.1.0"

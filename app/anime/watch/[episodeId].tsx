@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { createSubParser, formats } from '@wxhccc/subtitle-parser';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -11,10 +12,10 @@ import {
   Pressable,
   BackHandler,
 } from 'react-native';
-import Video, { VideoRef, SelectedTrackType, TextTrackType } from 'react-native-video';
+import Video, { VideoRef, TextTrackType } from 'react-native-video';
 import type { ISO639_1 } from 'react-native-video/lib/types/language';
 
-import { fetchAnimeStreamingLink } from '~/services/AnimeService';
+import { fetchAnimeStreamingLink, Type } from '~/services/AnimeService';
 
 interface StreamingResponse {
   success: boolean;
@@ -71,6 +72,12 @@ interface SubtitleTrack {
   type: TextTrackType;
 }
 
+interface SubtitleCue {
+  start: number; // in seconds
+  end: number; // in seconds
+  text: string;
+}
+
 const WatchScreen = () => {
   const router = useRouter();
   const { episodeId, type } = useLocalSearchParams<{
@@ -85,6 +92,9 @@ const WatchScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState<number | null>(null);
+  const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [currentSubtitleText, setCurrentSubtitleText] = useState<string>('');
+  const [isLoadingSubtitles, setIsLoadingSubtitles] = useState(false);
 
   const {
     data: streamingData,
@@ -92,7 +102,7 @@ const WatchScreen = () => {
     error: queryError,
   } = useQuery<StreamingResponse>({
     queryKey: ['streaming', episodeId, type],
-    queryFn: () => fetchAnimeStreamingLink(episodeId, type),
+    queryFn: () => fetchAnimeStreamingLink(episodeId, type as Type),
     enabled: !!episodeId && !!type,
     staleTime: 0,
   });
@@ -121,6 +131,23 @@ const WatchScreen = () => {
       };
     });
 
+  const parseSubtitles = (subtitleText: string): SubtitleCue[] => {
+    try {
+      const parser = createSubParser(formats);
+      const subtitleInfo = parser.parse(subtitleText);
+
+      // Convert from library format (milliseconds) to our format (seconds)
+      return subtitleInfo.contents.map((caption) => ({
+        start: caption.start / 1000, // Convert milliseconds to seconds
+        end: caption.end / 1000, // Convert milliseconds to seconds
+        text: caption.content.trim(),
+      }));
+    } catch (error) {
+      console.error('Error parsing subtitles with library:', error);
+      return [];
+    }
+  };
+
   // Set English as default subtitle if available
   useEffect(() => {
     if (validSubtitleTracks.length > 0 && selectedSubtitleIndex === null) {
@@ -137,6 +164,61 @@ const WatchScreen = () => {
       }
     }
   }, [validSubtitleTracks, selectedSubtitleIndex]);
+
+  // Fetch and parse subtitle file when track is selected
+  useEffect(() => {
+    if (selectedSubtitleIndex !== null && validSubtitleTracks[selectedSubtitleIndex]) {
+      const track = validSubtitleTracks[selectedSubtitleIndex];
+      setIsLoadingSubtitles(true);
+      setSubtitleCues([]);
+      setCurrentSubtitleText('');
+
+      fetch(track.uri, {
+        headers: videoHeaders ? { Referer: videoHeaders.Referer || '' } : undefined,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch subtitles: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((text) => {
+          try {
+            const cues = parseSubtitles(text);
+            setSubtitleCues(cues);
+            setIsLoadingSubtitles(false);
+          } catch (error) {
+            console.error('Error parsing subtitles:', error);
+            setIsLoadingSubtitles(false);
+            setSubtitleCues([]);
+          }
+        })
+        .catch((error) => {
+          console.error('Error loading subtitles:', error);
+          setIsLoadingSubtitles(false);
+          setSubtitleCues([]);
+        });
+    } else {
+      setSubtitleCues([]);
+      setCurrentSubtitleText('');
+    }
+  }, [selectedSubtitleIndex, validSubtitleTracks, videoHeaders]);
+
+  // Update current subtitle text based on video time
+  useEffect(() => {
+    if (subtitleCues.length === 0 || selectedSubtitleIndex === null) {
+      setCurrentSubtitleText('');
+      return;
+    }
+
+    // Find the active cue (with small buffer for better UX)
+    const buffer = 0.1; // 100ms buffer
+    const activeCue = subtitleCues.find(
+      (cue) => currentTime >= cue.start - buffer && currentTime <= cue.end + buffer
+    );
+
+    setCurrentSubtitleText(activeCue?.text || '');
+  }, [currentTime, subtitleCues, selectedSubtitleIndex]);
 
   useFocusEffect(
     useCallback(() => {
@@ -171,19 +253,10 @@ const WatchScreen = () => {
     );
   }
 
-  // Prepare video source
+  // Prepare video source (removed textTracks as they don't work reliably with HLS/m3u8)
   const videoSourceConfig = {
     uri: videoSource,
     headers: videoHeaders ? { Referer: videoHeaders.Referer || '' } : undefined,
-    textTracks:
-      validSubtitleTracks.length > 0
-        ? validSubtitleTracks.map((track: SubtitleTrack) => ({
-            title: track.title || track.language,
-            language: track.language,
-            type: track.type,
-            uri: track.uri,
-          }))
-        : undefined,
   };
 
   return (
@@ -227,39 +300,33 @@ const WatchScreen = () => {
           onPlaybackStateChanged={(data) => {
             setIsPlaying(data.isPlaying);
           }}
-          onTextTracks={(data) => {
-            // Handle available text tracks change
-            console.log('Text tracks available:', data.textTracks);
-            // Auto-select first track if none selected
-            if (selectedSubtitleIndex === null && data.textTracks && data.textTracks.length > 0) {
-              const firstSelectedIndex = data.textTracks.findIndex((track) => track.selected);
-              if (firstSelectedIndex !== -1) {
-                setSelectedSubtitleIndex(firstSelectedIndex);
-              }
-            }
-          }}
-          onTextTrackDataChanged={(data) => {
-            // Handle subtitle data changes
-            console.log('Subtitle data changed:', data.subtitleTracks);
-          }}
-          selectedTextTrack={
-            selectedSubtitleIndex !== null
-              ? {
-                  type: SelectedTrackType.INDEX,
-                  value: selectedSubtitleIndex,
-                }
-              : {
-                  type: SelectedTrackType.DISABLED,
-                }
-          }
           fullscreenAutorotate
           fullscreenOrientation="landscape"
         />
 
-        <View className="absolute inset-0">
+        <View className="pointer-events-none absolute inset-0">
           {isBuffering && (
             <View className="flex-1 items-center justify-center bg-black/50">
               <ActivityIndicator size="large" color="#84cc16" />
+            </View>
+          )}
+
+          {/* Custom Subtitle Overlay */}
+          {currentSubtitleText && selectedSubtitleIndex !== null && (
+            <View className="absolute bottom-16 left-0 right-0 items-center px-4">
+              <View className="rounded-lg bg-black/80 px-4 py-2 shadow-lg">
+                <Text className="text-center text-base font-semibold leading-6 text-white">
+                  {currentSubtitleText}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {isLoadingSubtitles && selectedSubtitleIndex !== null && (
+            <View className="absolute bottom-16 left-0 right-0 items-center">
+              <View className="rounded-lg bg-black/60 px-3 py-1.5">
+                <Text className="text-sm text-white/80">Loading subtitles...</Text>
+              </View>
             </View>
           )}
         </View>
