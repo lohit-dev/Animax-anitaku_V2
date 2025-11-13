@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { createSubParser, formats } from '@wxhccc/subtitle-parser';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -12,8 +11,7 @@ import {
   Pressable,
   BackHandler,
 } from 'react-native';
-import Video, { VideoRef, TextTrackType } from 'react-native-video';
-import type { ISO639_1 } from 'react-native-video/lib/types/language';
+import { VLCPlayer } from 'react-native-vlc-media-player';
 
 import { fetchAnimeStreamingLink, Type } from '~/services/AnimeService';
 
@@ -46,36 +44,9 @@ interface StreamingResponse {
   };
 }
 
-// Helper function to map language names to ISO639_1 codes
-const getLanguageCode = (lang: string): ISO639_1 => {
-  const langLower = lang.toLowerCase();
-  const languageMap: Record<string, ISO639_1> = {
-    english: 'en',
-    spanish: 'es',
-    portuguese: 'pt',
-    arabic: 'ar',
-    german: 'de',
-    turkish: 'tr',
-    french: 'fr',
-    italian: 'it',
-    japanese: 'ja',
-    korean: 'ko',
-    chinese: 'zh',
-  };
-  return languageMap[langLower] || 'en';
-};
-
 interface SubtitleTrack {
   uri: string;
-  language: ISO639_1;
   title: string;
-  type: TextTrackType;
-}
-
-interface SubtitleCue {
-  start: number; // in seconds
-  end: number; // in seconds
-  text: string;
 }
 
 const WatchScreen = () => {
@@ -85,16 +56,13 @@ const WatchScreen = () => {
     type: 'sub' | 'dub';
   }>();
 
-  const videoRef = useRef<VideoRef>(null);
+  const vlcPlayerRef = useRef<any>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState<number | null>(null);
-  const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
-  const [currentSubtitleText, setCurrentSubtitleText] = useState<string>('');
-  const [isLoadingSubtitles, setIsLoadingSubtitles] = useState(false);
 
   const {
     data: streamingData,
@@ -111,51 +79,22 @@ const WatchScreen = () => {
   const videoHeaders = streamingData?.data?.headers;
   const subtitleTracks = streamingData?.data?.tracks || [];
 
-  // Filter out thumbnail tracks and prepare subtitle tracks for react-native-video
+  // Filter out thumbnail tracks and prepare subtitle tracks for VLC
   const validSubtitleTracks: SubtitleTrack[] = subtitleTracks
     .filter((track) => track.lang?.toLowerCase() !== 'thumbnails' && (track.url || track.file))
     .map((track) => {
       const url = track.url || track.file || '';
-      const langName = track.lang || track.label || 'english';
-      // Determine type based on file extension
-      const type = url.endsWith('.vtt')
-        ? TextTrackType.VTT
-        : url.endsWith('.srt')
-          ? TextTrackType.SUBRIP
-          : TextTrackType.VTT; // Default to VTT
       return {
         uri: url,
-        language: getLanguageCode(langName),
         title: track.label || track.lang || 'Unknown',
-        type,
       };
     });
-
-  const parseSubtitles = (subtitleText: string): SubtitleCue[] => {
-    try {
-      const parser = createSubParser(formats);
-      const subtitleInfo = parser.parse(subtitleText);
-
-      // Convert from library format (milliseconds) to our format (seconds)
-      return subtitleInfo.contents.map((caption) => ({
-        start: caption.start / 1000, // Convert milliseconds to seconds
-        end: caption.end / 1000, // Convert milliseconds to seconds
-        text: caption.content.trim(),
-      }));
-    } catch (error) {
-      console.error('Error parsing subtitles with library:', error);
-      return [];
-    }
-  };
 
   // Set English as default subtitle if available
   useEffect(() => {
     if (validSubtitleTracks.length > 0 && selectedSubtitleIndex === null) {
-      const englishIndex = validSubtitleTracks.findIndex(
-        (track) =>
-          track.language?.toLowerCase() === 'en' ||
-          track.language?.toLowerCase().includes('english') ||
-          track.title?.toLowerCase().includes('english')
+      const englishIndex = validSubtitleTracks.findIndex((track) =>
+        track.title?.toLowerCase().includes('english')
       );
       if (englishIndex !== -1) {
         setSelectedSubtitleIndex(englishIndex);
@@ -164,61 +103,6 @@ const WatchScreen = () => {
       }
     }
   }, [validSubtitleTracks, selectedSubtitleIndex]);
-
-  // Fetch and parse subtitle file when track is selected
-  useEffect(() => {
-    if (selectedSubtitleIndex !== null && validSubtitleTracks[selectedSubtitleIndex]) {
-      const track = validSubtitleTracks[selectedSubtitleIndex];
-      setIsLoadingSubtitles(true);
-      setSubtitleCues([]);
-      setCurrentSubtitleText('');
-
-      fetch(track.uri, {
-        headers: videoHeaders ? { Referer: videoHeaders.Referer || '' } : undefined,
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch subtitles: ${response.status}`);
-          }
-          return response.text();
-        })
-        .then((text) => {
-          try {
-            const cues = parseSubtitles(text);
-            setSubtitleCues(cues);
-            setIsLoadingSubtitles(false);
-          } catch (error) {
-            console.error('Error parsing subtitles:', error);
-            setIsLoadingSubtitles(false);
-            setSubtitleCues([]);
-          }
-        })
-        .catch((error) => {
-          console.error('Error loading subtitles:', error);
-          setIsLoadingSubtitles(false);
-          setSubtitleCues([]);
-        });
-    } else {
-      setSubtitleCues([]);
-      setCurrentSubtitleText('');
-    }
-  }, [selectedSubtitleIndex, validSubtitleTracks, videoHeaders]);
-
-  // Update current subtitle text based on video time
-  useEffect(() => {
-    if (subtitleCues.length === 0 || selectedSubtitleIndex === null) {
-      setCurrentSubtitleText('');
-      return;
-    }
-
-    // Find the active cue (with small buffer for better UX)
-    const buffer = 0.1; // 100ms buffer
-    const activeCue = subtitleCues.find(
-      (cue) => currentTime >= cue.start - buffer && currentTime <= cue.end + buffer
-    );
-
-    setCurrentSubtitleText(activeCue?.text || '');
-  }, [currentTime, subtitleCues, selectedSubtitleIndex]);
 
   useFocusEffect(
     useCallback(() => {
@@ -253,10 +137,16 @@ const WatchScreen = () => {
     );
   }
 
-  // Prepare video source (removed textTracks as they don't work reliably with HLS/m3u8)
-  const videoSourceConfig = {
+  // Get selected subtitle URI for VLC
+  const selectedSubtitleUri =
+    selectedSubtitleIndex !== null && validSubtitleTracks[selectedSubtitleIndex]
+      ? validSubtitleTracks[selectedSubtitleIndex].uri
+      : undefined;
+
+  // Prepare VLC source with headers via initOptions
+  const vlcSource = {
     uri: videoSource,
-    headers: videoHeaders ? { Referer: videoHeaders.Referer || '' } : undefined,
+    initOptions: videoHeaders?.Referer ? [`--http-referrer=${videoHeaders.Referer}`] : [],
   };
 
   return (
@@ -276,60 +166,54 @@ const WatchScreen = () => {
       />
 
       <View className="relative h-64 w-full">
-        <Video
-          ref={videoRef}
-          source={videoSourceConfig}
-          style={{ width: '100%', height: '100%', position: 'absolute' }}
-          resizeMode="contain"
-          controls
-          paused={!isPlaying}
-          onLoad={(data) => {
-            setDuration(data.duration);
+        <VLCPlayer
+          ref={vlcPlayerRef}
+          source={vlcSource}
+          style={{ width: '100%', height: '100%' }}
+          subtitleUri={selectedSubtitleUri}
+          autoplay
+          textTrack={selectedSubtitleIndex !== null ? selectedSubtitleIndex : 0}
+          rate={1.0}
+          onProgress={(data: any) => {
+            setCurrentTime(data.currentTime / 1000); // Convert ms to seconds
+          }}
+          onEnd={() => {
+            setIsPlaying(false);
+          }}
+          onError={(error: any) => {
+            console.error('VLC Player Error:', error);
             setIsBuffering(false);
+          }}
+          onBuffering={(data: any) => {
+            setIsBuffering(data.isBuffering);
+          }}
+          // onStateChange={(data: any) => {
+          //   if (data.state === 'Playing') {
+          //     setIsPlaying(true);
+          //   } else if (data.state === 'Paused' || data.state === 'Stopped') {
+          //     setIsPlaying(false);
+          //   }
+          // }}
+          onPlaying={() => {
             setIsPlaying(true);
           }}
-          onProgress={(data) => {
-            setCurrentTime(data.currentTime);
+          onPaused={() => {
+            setIsPlaying(false);
           }}
-          onBuffer={({ isBuffering: buffering }) => {
-            setIsBuffering(buffering);
+          onStopped={() => {
+            setIsPlaying(false);
           }}
-          onError={() => {
+          onLoad={(data: any) => {
+            setDuration(data.duration / 1000); // Convert ms to seconds
             setIsBuffering(false);
           }}
-          onPlaybackStateChanged={(data) => {
-            setIsPlaying(data.isPlaying);
-          }}
-          fullscreenAutorotate
-          fullscreenOrientation="landscape"
         />
 
-        <View className="pointer-events-none absolute inset-0">
-          {isBuffering && (
-            <View className="flex-1 items-center justify-center bg-black/50">
-              <ActivityIndicator size="large" color="#84cc16" />
-            </View>
-          )}
-
-          {/* Custom Subtitle Overlay */}
-          {currentSubtitleText && selectedSubtitleIndex !== null && (
-            <View className="absolute bottom-16 left-0 right-0 items-center px-4">
-              <View className="rounded-lg bg-black/80 px-4 py-2 shadow-lg">
-                <Text className="text-center text-base font-semibold leading-6 text-white">
-                  {currentSubtitleText}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {isLoadingSubtitles && selectedSubtitleIndex !== null && (
-            <View className="absolute bottom-16 left-0 right-0 items-center">
-              <View className="rounded-lg bg-black/60 px-3 py-1.5">
-                <Text className="text-sm text-white/80">Loading subtitles...</Text>
-              </View>
-            </View>
-          )}
-        </View>
+        {isBuffering && (
+          <View className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50">
+            <ActivityIndicator size="large" color="#84cc16" />
+          </View>
+        )}
       </View>
 
       <View className="flex-row items-center justify-between bg-neutral-800 p-2.5">
@@ -340,9 +224,9 @@ const WatchScreen = () => {
           className="rounded bg-lime-600 px-3 py-1.5"
           onPress={() => {
             if (isPlaying) {
-              videoRef.current?.pause();
+              vlcPlayerRef.current?.pause();
             } else {
-              videoRef.current?.resume();
+              vlcPlayerRef.current?.play();
             }
           }}>
           <Text className="font-bold text-white">{isPlaying ? 'Pause' : 'Play'}</Text>
@@ -395,7 +279,7 @@ const WatchScreen = () => {
                       setSelectedSubtitleIndex(index);
                       setIsModalVisible(false);
                     }}>
-                    <Text className="text-white">{track.title || track.language || 'Unknown'}</Text>
+                    <Text className="text-white">{track.title || 'Unknown'}</Text>
                   </Pressable>
                 ))}
               </>

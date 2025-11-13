@@ -21,14 +21,13 @@
       "expo-font",
       "expo-web-browser",
       [
-        "react-native-video",
+        "react-native-vlc-media-player",
         {
-          "enableNotificationControls": true,
-          "androidExtensions": {
-            "useExoplayerRtsp": false,
-            "useExoplayerSmoothStreaming": true,
-            "useExoplayerHls": true,
-            "useExoplayerDash": true
+          "ios": {
+            "includeVLCKit": false
+          },
+          "android": {
+            "legacyJetifier": false
           }
         }
       ]
