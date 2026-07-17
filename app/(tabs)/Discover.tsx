@@ -85,7 +85,9 @@ const Discover = () => {
 
       {/* Conditional Rendering: Show only when searchQuery is empty */}
       {!searchQuery && (
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 110 }}
+          showsVerticalScrollIndicator={false}>
           {/* Title Section */}
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             <Text className="font-salsa text-center text-white" style={{ fontSize: wp(10) }}>

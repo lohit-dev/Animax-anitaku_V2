@@ -21,7 +21,10 @@ const MyList = () => {
           className="absolute h-72 w-full rounded-full"
         />
       </View>
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 110 }}
+        showsVerticalScrollIndicator={false}>
         <View className="mt-16 items-center px-6 pt-8">
           <Text className="font-salsa pt-6 text-5xl text-white">
             {getFormattedTitle('My Library', 'text-5xl font-salsa font-semibold')}

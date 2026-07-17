@@ -226,7 +226,7 @@ const EpisodeListSheet = ({
               initialNumToRender={15}
               maxToRenderPerBatch={10}
               windowSize={5}
-              removeClippedSubviews={true}
+              removeClippedSubviews
               getItemLayout={(_, index) => ({
                 length: 84, // estimated height
                 offset: 84 * index,
