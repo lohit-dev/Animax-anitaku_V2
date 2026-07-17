@@ -39,7 +39,7 @@ const HomeBanner = ({ index, item, x, onPress }: HomeBannerProps) => {
 
   return (
     <Pressable onPress={onPress}>
-      <Animated.Image source={{ uri: item.poster }} style={[styles.Image, animatedStyle]} />
+      <Animated.Image source={{ uri: item.image }} style={[styles.Image, animatedStyle]} />
     </Pressable>
   );
 };
@@ -48,7 +48,7 @@ export default HomeBanner;
 
 const styles = StyleSheet.create({
   Image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     width: wp(100),
     height: hp(56),
   },

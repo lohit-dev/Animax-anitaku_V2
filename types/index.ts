@@ -1,53 +1,136 @@
-export type Anime = {
-  id: string;
-  name: string;
-  poster: string;
+export type AnikotoHomeSpotlightItem = {
+  title: string;
+  slug: string;
+  image: string;
+  synopsis?: string;
+  quality?: string;
+  rating?: string;
+  date?: string;
+  sub?: boolean;
+  dub?: boolean;
+};
+
+export type AnikotoHomeListItem = {
+  title: string;
+  slug: string;
+  image: string;
   type?: string;
-  episodes?: {
-    sub?: number | null;
-    dub?: number | null;
+  episode?: string;
+  episodeNumber?: string;
+  sub?: boolean;
+  dub?: boolean;
+  episodeSlug?: string;
+};
+
+export type AnikotoHomeResponse = {
+  success: boolean;
+  data: {
+    spotlight: AnikotoHomeSpotlightItem[];
+    recentUpdates: AnikotoHomeListItem[];
+    upcoming: AnikotoHomeListItem[];
+    topTables: {
+      newReleases: AnikotoHomeListItem[];
+      newlyAdded: AnikotoHomeListItem[];
+      justCompleted: AnikotoHomeListItem[];
+    };
   };
-  rank?: number;
-  jname: string;
-  description?: string;
-  otherInfo?: string[];
-  duration?: string;
-  rating?: string | null;
 };
 
-type TrendingAnime = {
-  rank: number;
+export type AnikotoSearchItem = {
+  title: string;
+  slug: string;
+  image: string;
+  type?: string;
+  score?: string;
+  genres?: string[];
+  languages?: string[];
+  episode?: string;
+};
+
+export type AnikotoSearchResponse = {
+  results: AnikotoSearchItem[];
+  pagination: {
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+};
+
+export type AnikotoDetailsResponse = {
   id: string;
-  name: string;
-  jname: string;
-  poster: string;
-};
-
-export type Top10Animes = {
-  today: Anime[];
-  week: Anime[];
-  month: Anime[];
-};
-
-export type AnimeData = {
-  spotlightAnimes: Anime[];
-  trendingAnimes: TrendingAnime[];
-  latestEpisodeAnimes: Anime[];
-  top10Animes: Top10Animes;
-  topAiringAnimes: (Anime & {
-    jname: string;
-  })[];
-  topUpcomingAnimes: (Anime & {
-    duration: string;
-    rating: string | null;
-  })[];
-  mostPopularAnimes: Anime[];
-  mostFavoriteAnimes: Anime[];
-  latestCompletedAnimes: Anime[];
+  title: string;
+  alternateTitles: string[];
+  image: string;
+  synopsis: string;
+  rating: string;
+  quality: string;
   genres: string[];
+  status: string;
+  released: string;
+  duration: string;
+  type: string;
+  malRating: string;
+  aniListId: number | null;
+  malId: number | null;
 };
 
-type SearchFilters = {
+export type AnikotoEpisode = {
+  id: string;
+  episode: string;
+  slug: string;
+  malId: string;
+  timestamp: string;
+  sub: boolean;
+  dub: boolean;
+  serversId: string;
+  title: string;
+  url: string;
+};
+
+export type AnikotoEpisodesResponse = AnikotoEpisode[];
+
+export type SkipTime = {
+  start: number;
+  end: number;
+} | null;
+
+export type Subtitle = {
+  file: string;
+  label: string;
+  kind: string;
+  default?: boolean;
+};
+
+export type Server = {
+  serverName: string;
+  type: string;
+  svId: string;
+  epId: string;
+  cmId: string;
+  embedUrl: string;
+  referer: string;
+  m3u8Url: string | null;
+  subtitles: Subtitle[];
+  error?: string;
+};
+
+export type AnikotoStreamResponse = {
+  success: boolean;
+  data: {
+    animeSlug: string;
+    episodeNumber: string;
+    episodeTitle: string;
+    aniListId: number | null;
+    malId: number | null;
+    intro: SkipTime;
+    outro: SkipTime;
+    serversId: string;
+    totalServers: number;
+    servers: Server[];
+  };
+};
+
+export type SearchFilters = {
   genres?: string;
   type?: string;
   sort?: string;
@@ -65,151 +148,15 @@ export type SearchParams = {
   filters?: SearchFilters;
 };
 
-type Season = {
-  id: string;
-  name: string;
-  title: string;
-  poster: string;
-  isCurrent: boolean;
-};
-
-export type AnimeInfoResponse = {
-  success: boolean;
-  data: {
-    anime: {
-      info: {
-        id: string;
-        anilistId: BigInt;
-        malId: BigInt;
-        name: string;
-        poster: string;
-        description: string;
-        stats: {
-          rating: string;
-          quality: string;
-          episodes: {
-            sub: number;
-            dub: number;
-          };
-          type: string;
-          duration: string;
-        };
-        promotionalVideos: PromotionalVideo[];
-        charactersVoiceActors: CharacterVoiceActor[];
-      };
-      moreInfo: {
-        japanese: string;
-        synonyms: string;
-        premiered: string;
-        malscore: string;
-        aired: string;
-        genres: string[];
-        status: string;
-        studios: string;
-        duration: string;
-        producers: string[];
-      };
-      seasons: Season[];
-      mostPopularAnimes: Anime[];
-      recommended: Anime[];
-      related: Anime[];
-    };
+export type Anime = Partial<AnikotoHomeSpotlightItem> &
+  Partial<AnikotoHomeListItem> &
+  Partial<AnikotoSearchItem> & {
+    title: string;
+    slug: string;
+    image: string;
+    rank?: number;
   };
-};
 
-export type PromotionalVideo = {
-  title: string | undefined;
-  source: string | undefined;
-  thumbnail: string | undefined;
-};
-
-export type CharacterVoiceActor = {
-  character: {
-    id: string;
-    poster: string;
-    name: string;
-    cast: string;
-  };
-  voiceActor: {
-    id: string;
-    poster: string;
-    name: string;
-    cast: string;
-  };
-};
-
-export type SearchResponse = {
-  success: boolean;
-  data: {
-    animes: Anime[];
-    searchQuery: string;
-    searchFilters: SearchFilters;
-    totalPages: number;
-    hasNextPage: boolean;
-    currentPage: number;
-  };
-};
-
-export type ApiResponse = {
-  success: boolean;
-  data: AnimeData;
-};
-
-export type Genre =
-  | 'Action'
-  | 'Adventure'
-  | 'Cars'
-  | 'Comedy'
-  | 'Dementia'
-  | 'Demons'
-  | 'Drama'
-  | 'Ecchi'
-  | 'Fantasy'
-  | 'Game'
-  | 'Harem'
-  | 'Historical'
-  | 'Horror'
-  | 'Isekai'
-  | 'Josei'
-  | 'Kids'
-  | 'Magic'
-  | 'Martial Arts'
-  | 'Mecha'
-  | 'Military'
-  | 'Music'
-  | 'Mystery'
-  | 'Parody'
-  | 'Police'
-  | 'Psychological'
-  | 'Romance'
-  | 'Samurai'
-  | 'School'
-  | 'Sci-Fi'
-  | 'Seinen'
-  | 'Shoujo'
-  | 'Shoujo Ai'
-  | 'Shounen'
-  | 'Shounen Ai'
-  | 'Slice of Life'
-  | 'Space'
-  | 'Sports'
-  | 'Super Power'
-  | 'Supernatural'
-  | 'Thriller'
-  | 'Vampire';
-
-export type CategoryResponse = {
-  success: boolean;
-  data: {
-    animes: Anime[];
-    genres: Genre;
-    top10Animes: Top10Animes;
-  };
-};
-
-export type Character = {
-  id: string;
-  poster: string;
-  name: string;
-  cast: string;
-};
+export type SearchResponse = AnikotoSearchResponse;
+export type AnimeInfoResponse = AnikotoDetailsResponse;
+export type CharacterVoiceActor = any;

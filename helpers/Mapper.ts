@@ -1,4 +1,4 @@
-import { DefaultTheme } from '@react-navigation/native';
+import { DefaultTheme } from 'expo-router/react-navigation';
 
 // Map the custom theme colors to react-native-paper's theme structure
 export const MapToPaperTheme = (colors: any) => ({

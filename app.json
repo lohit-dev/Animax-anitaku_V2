@@ -3,7 +3,6 @@
     "name": "animax",
     "slug": "animax",
     "version": "1.0.0",
-    "newArchEnabled": true,
     "scheme": "animax",
     "web": {
       "bundler": "metro",
@@ -30,7 +29,9 @@
             "legacyJetifier": false
           }
         }
-      ]
+      ],
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -39,11 +40,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,

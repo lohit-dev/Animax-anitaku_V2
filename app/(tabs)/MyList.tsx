@@ -14,14 +14,14 @@ const MyList = () => {
   const cardWidth = (screenWidth - 64) / 3;
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
+    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-neutral-950">
       <View className="relative">
         <LinearGradient
           colors={['rgba(163, 230, 53, 0.2)', 'transparent']}
           className="absolute h-72 w-full rounded-full"
         />
       </View>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
         <View className="mt-16 items-center px-6 pt-8">
           <Text className="font-salsa pt-6 text-5xl text-white">
             {getFormattedTitle('My Library', 'text-5xl font-salsa font-semibold')}
@@ -37,7 +37,7 @@ const MyList = () => {
           <Animated.View entering={FadeInDown} className="flex-1 px-4 pt-4">
             <View className="flex-row flex-wrap justify-between">
               {savedAnimes.map((anime, index) => (
-                <View key={anime.id} className="mb-4" style={{ width: cardWidth }}>
+                <View key={anime.slug} className="mb-4" style={{ width: cardWidth }}>
                   <AnimeCard item={anime} index={index} />
                 </View>
               ))}

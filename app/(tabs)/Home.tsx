@@ -37,13 +37,13 @@ const Home = () => {
     queryFn: fetchHomePage,
   });
 
-  const [anime, setAnime] = useState<Anime[]>(HomePageData?.spotlightAnimes || []);
+  const [anime, setAnime] = useState<Anime[]>(HomePageData?.data?.spotlight || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
   const x = useSharedValue(0);
   const ref = useAnimatedRef<Animated.FlatList<any>>();
-  const interval = useRef<NodeJS.Timeout>(null);
+  const interval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const viewabilityConfig: ViewabilityConfig = {
     itemVisiblePercentThreshold: 50,
@@ -66,8 +66,8 @@ const Home = () => {
   });
 
   useEffect(() => {
-    if (HomePageData?.spotlightAnimes) {
-      setAnime(HomePageData.spotlightAnimes);
+    if (HomePageData?.data?.spotlight) {
+      setAnime(HomePageData.data.spotlight);
     }
   }, [HomePageData]);
 
@@ -83,11 +83,15 @@ const Home = () => {
         });
       }, 4000);
     } else {
-      clearInterval(interval.current as NodeJS.Timeout);
+      if (interval.current) {
+        clearInterval(interval.current);
+      }
     }
 
     return () => {
-      clearInterval(interval.current as NodeJS.Timeout);
+      if (interval.current) {
+        clearInterval(interval.current);
+      }
     };
   }, [isAutoPlay, currentIndex, anime.length, width]);
 
@@ -118,7 +122,7 @@ const Home = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
+    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-neutral-950">
       <ScrollView
         nestedScrollEnabled
         showsVerticalScrollIndicator={false}
@@ -130,14 +134,14 @@ const Home = () => {
             return (
               currentIndex === index && (
                 <HomeBanner
-                  key={animeItem.id}
+                  key={animeItem.slug}
                   index={index}
                   item={animeItem}
                   x={x}
                   onPress={() => {
                     router.push({
                       pathname: '/anime/[id]',
-                      params: { id: animeItem.id, poster: animeItem.poster },
+                      params: { id: animeItem.slug, poster: animeItem.image },
                     });
                   }}
                 />
@@ -170,7 +174,7 @@ const Home = () => {
             maxToRenderPerBatch={20}
             keyExtractor={(_, index) => `list_item${index}`}
             onEndReachedThreshold={0.5}
-            onEndReached={() => setAnime([...anime, ...(HomePageData?.spotlightAnimes || [])])}
+            onEndReached={() => setAnime([...anime, ...(HomePageData?.data?.spotlight || [])])}
             renderItem={({ item, index }) => {
               return (
                 <AnimeBannerText
@@ -180,7 +184,7 @@ const Home = () => {
                   onPress={() => {
                     router.push({
                       pathname: '/anime/[id]',
-                      params: { id: item.id, poster: item.poster },
+                      params: { id: item.slug, poster: item.image },
                     });
                   }}
                 />
@@ -190,16 +194,19 @@ const Home = () => {
 
           <HomeButtons />
           {/* The Main Flatlist's */}
-          <RowItem name="Hot Trends" seeAll data={HomePageData?.trendingAnimes} rounded />
-          <RowItem name="Latest Episodes" seeAll data={HomePageData?.latestEpisodeAnimes} />
-          <RowItem name="Upcoming Releases" seeAll data={HomePageData?.topUpcomingAnimes} />
-          <RowItem name="Top Airing Now" seeAll data={HomePageData?.topAiringAnimes} />
-          <RowItem name="Most Popular" seeAll data={HomePageData?.mostPopularAnimes} />
-          <RowItem name="Fan Favorites" seeAll data={HomePageData?.mostFavoriteAnimes} />
+          <RowItem
+            name="Hot Trends"
+            seeAll
+            data={HomePageData?.data?.topTables?.newlyAdded}
+            rounded
+          />
+          <RowItem name="Latest Episodes" seeAll data={HomePageData?.data?.recentUpdates} />
+          <RowItem name="Upcoming Releases" seeAll data={HomePageData?.data?.upcoming} />
+          <RowItem name="Top Airing Now" seeAll data={HomePageData?.data?.topTables?.newReleases} />
           <RowItem
             name="Completed Series"
             seeAll
-            data={HomePageData?.latestCompletedAnimes}
+            data={HomePageData?.data?.topTables?.justCompleted}
             className="mb-44"
           />
         </View>

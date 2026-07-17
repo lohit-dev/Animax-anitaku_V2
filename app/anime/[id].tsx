@@ -1,8 +1,7 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
 import React, { useRef, useState } from 'react';
@@ -47,28 +46,27 @@ export const AnimeDetails = () => {
     queryFn: () => fetchAnimeById(id),
   });
 
-  const animeData = anime?.data?.anime;
+  const animeData = anime;
   const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
-  const titleLength = animeData?.info?.name?.length;
+  const titleLength = animeData?.title?.length;
   const titleStyle = titleLength && titleLength > 12 ? 'text-3xl' : 'text-4xl';
   const titleStyleFirstLetter = titleLength && titleLength > 12 ? 'text-4xl' : 'text-5xl';
 
   const toast = useToast();
 
-  const [isFav, setIsFav] = useState(() => savedAnimes.some((anime) => anime.id === id));
+  const [isFav, setIsFav] = useState(() => savedAnimes.some((anime) => anime.slug === id));
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleShare = async () => {
     try {
       const deepLink = `animax://anime/${id}`;
-      const webFallback = 'https://github.com/Emperor-Grey/Animax-anitaku_V2';
+      const webFallback = 'https://github.com/lohit-dev/Animax-anitaku_V2';
 
       const message =
-        `🌟 ${animeData?.info.name.toUpperCase()} 🌟\n\n` +
-        `${animeData?.moreInfo.japanese}\n` +
-        `Rating: ${animeData?.info.stats.rating}\n` +
-        `Episodes: ${animeData?.info.stats.episodes.sub || animeData?.info.stats.episodes.dub}\n\n` +
+        `🌟 ${animeData?.title.toUpperCase()} 🌟\n\n` +
+        `${animeData?.alternateTitles?.[0] || 'Unknown'}\n` +
+        `Rating: ${animeData?.rating}\n\n` +
         `📺 Watch now on Animax!\n` +
         `- Anime to the max! 🚀\n\n` +
         `📱 Open in Animax: ${deepLink}\n` +
@@ -76,7 +74,7 @@ export const AnimeDetails = () => {
 
       await RNShare.share({
         message,
-        title: `Share ${animeData?.info.name}`,
+        title: `Share ${animeData?.title}`,
         url: deepLink,
       });
     } catch (error) {
@@ -91,18 +89,12 @@ export const AnimeDetails = () => {
       dispatch(removeAnime(id));
     } else {
       const mappedAnime: Anime = {
-        id: animeData.info.id,
-        name: animeData.info.name,
-        poster: animeData.info.poster,
-        jname: animeData.moreInfo.japanese,
-        description: animeData.info.description,
-        rating: animeData.info.stats.rating,
-        type: animeData.info.stats.type,
-        episodes: {
-          sub: animeData.info.stats.episodes.sub,
-          dub: animeData.info.stats.episodes.dub,
-        },
-        duration: animeData.info.stats.duration,
+        slug: animeData.id,
+        title: animeData.title,
+        image: animeData.image,
+        synopsis: animeData.synopsis,
+        rating: animeData.rating,
+        type: animeData.type,
       };
       dispatch(addAnime(mappedAnime));
     }
@@ -175,7 +167,7 @@ export const AnimeDetails = () => {
       <AnimatedImageBackground
         // @ts-ignore
         sharedTransitionTag="image"
-        source={{ uri: animeData.info.poster }}
+        source={{ uri: animeData.image }}
         resizeMode="cover"
         style={styles.image}>
         <LinearGradient
@@ -209,21 +201,21 @@ export const AnimeDetails = () => {
                 ellipsizeMode="tail"
                 numberOfLines={2}
                 className={`font-salsa pt-2 text-center tracking-wider text-white ${titleStyle}`}>
-                {getFormattedTitle(animeData.info.name, titleStyleFirstLetter)}
+                {getFormattedTitle(animeData.title, titleStyleFirstLetter)}
               </Text>
             </View>
 
             <View className="flex-row items-center justify-center">
               <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
-                {animeData.moreInfo.status} •
+                {animeData.status} •
               </Text>
               <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
                 {' '}
-                {animeData.moreInfo.aired} •
+                {animeData.released} •
               </Text>
               <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
                 {' '}
-                {animeData.moreInfo.duration}
+                {animeData.duration}
               </Text>
             </View>
           </View>
@@ -246,10 +238,8 @@ export const AnimeDetails = () => {
         </View>
 
         <Text className="font-salsa pt-3 text-base text-neutral-300/85">
-          {showFullDescription
-            ? animeData.info.description
-            : `${animeData.info.description.substring(0, 155)}...`}
-          {animeData.info.description.length > 155 && (
+          {showFullDescription ? animeData.synopsis : `${animeData.synopsis.substring(0, 155)}...`}
+          {animeData.synopsis.length > 155 && (
             <Text
               className="text-lg text-lime-300"
               onPress={() => setShowFullDescription(!showFullDescription)}>
@@ -263,32 +253,23 @@ export const AnimeDetails = () => {
             {getFormattedTitle('Episodes', 'text-4xl font-semibold')}
           </Text>
           <View className="mt-4 flex-row gap-4">
-            {animeData.info.stats.episodes.sub > 0 && (
-              <TouchableOpacity
-                className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-                onPress={() => {
-                  setSelectedType('sub');
-                  bottomSheetRef.current?.present();
-                }}>
-                <Text className="font-salsa text-lg text-white">Sub</Text>
-                <Text className="font-salsa text-base text-neutral-400">
-                  {animeData.info.stats.episodes.sub} Episodes
-                </Text>
-              </TouchableOpacity>
-            )}
-            {animeData.info.stats.episodes.dub > 0 && (
-              <TouchableOpacity
-                className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-                onPress={() => {
-                  setSelectedType('dub');
-                  bottomSheetRef.current?.present();
-                }}>
-                <Text className="font-salsa text-lg text-white">Dub</Text>
-                <Text className="font-salsa text-base text-neutral-400">
-                  {animeData.info.stats.episodes.dub} Episodes
-                </Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
+              onPress={() => {
+                setSelectedType('sub');
+                bottomSheetRef.current?.present();
+              }}>
+              <Text className="font-salsa text-lg text-white">Sub</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
+              onPress={() => {
+                setSelectedType('dub');
+                bottomSheetRef.current?.present();
+              }}>
+              <Text className="font-salsa text-lg text-white">Dub</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -304,14 +285,6 @@ export const AnimeDetails = () => {
           enableBackdropPress
         />
 
-        {animeData.info.charactersVoiceActors.length > 0 && (
-          <CharacterVoiceActorRow
-            rounded
-            data={animeData?.info.charactersVoiceActors}
-            className="mt-4"
-          />
-        )}
-
         {/* More Info Section */}
         <View className="mb-6 mt-8">
           <Text className="font-salsa text-3xl tracking-wider text-white">
@@ -321,8 +294,8 @@ export const AnimeDetails = () => {
             className="mt-4 space-y-4 rounded-3xl bg-neutral-900/60 p-5"
             style={{ width: wp(90) }}>
             <InfoRow
-              label="Japanese"
-              value={animeData.moreInfo.japanese}
+              label="Alternate Title"
+              value={animeData.alternateTitles?.[0] || 'N/A'}
               icon="translate"
               valueStyle="text-lime-400"
               containerStyle="flex-1"
@@ -331,21 +304,21 @@ export const AnimeDetails = () => {
             <View className="h-[1px] w-full bg-neutral-800" />
             <InfoRow
               label="Premiered"
-              value={animeData.moreInfo.premiered}
+              value={animeData.released}
               icon="calendar"
               valueStyle="text-white"
             />
             <View className="h-[1px] w-full bg-neutral-800" />
             <InfoRow
               label="MAL Score"
-              value={animeData.moreInfo.malscore}
+              value={animeData.malRating || 'N/A'}
               icon="star"
               valueStyle="text-lime-400"
             />
             <View className="h-[1px] w-full bg-neutral-800" />
             <InfoRow
               label="Studios"
-              value={animeData.moreInfo.studios}
+              value="N/A"
               icon="video"
               valueStyle="text-white"
               numberOfLines={1}
@@ -353,18 +326,13 @@ export const AnimeDetails = () => {
             <View className="h-[1px] w-full bg-neutral-800" />
             <InfoRow
               label="Genres"
-              value={animeData.moreInfo.genres.join(' • ')}
+              value={animeData.genres?.join(' • ') || 'N/A'}
               icon="tag"
               valueStyle="text-lime-400"
               numberOfLines={2}
             />
             <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow
-              label="Status"
-              value={animeData.moreInfo.status}
-              icon="info"
-              valueStyle="text-white"
-            />
+            <InfoRow label="Status" value={animeData.status} icon="info" valueStyle="text-white" />
           </View>
         </View>
       </View>

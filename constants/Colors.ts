@@ -1,5 +1,6 @@
 export const lightTheme = {
   dark: false,
+  isV3: true,
   colors: {
     primary: 'rgb(0, 109, 61)',
     onPrimary: 'rgb(255, 255, 255)',
@@ -50,6 +51,7 @@ export const lightTheme = {
 
 export const darkTheme = {
   dark: true,
+  isV3: true,
   colors: {
     primary: 'rgb(123, 218, 156)',
     onPrimary: 'rgb(0, 57, 29)',

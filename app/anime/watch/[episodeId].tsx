@@ -13,36 +13,8 @@ import {
 } from 'react-native';
 import { VLCPlayer } from 'react-native-vlc-media-player';
 
-import { fetchAnimeStreamingLink, Type } from '~/services/AnimeService';
-
-interface StreamingResponse {
-  success: boolean;
-  data: {
-    headers?: {
-      Referer?: string;
-    };
-    tracks: {
-      url?: string;
-      file?: string;
-      lang?: string;
-      label?: string;
-      kind?: string;
-      default?: boolean;
-    }[];
-    sources: {
-      url: string;
-      type: string;
-    }[];
-    intro?: {
-      start: number;
-      end: number;
-    };
-    outro?: {
-      start: number;
-      end: number;
-    };
-  };
-}
+import { fetchAnimeStreamingLink } from '~/services/AnimeService';
+import { AnikotoStreamResponse } from '~/types';
 
 interface SubtitleTrack {
   uri: string;
@@ -51,8 +23,9 @@ interface SubtitleTrack {
 
 const WatchScreen = () => {
   const router = useRouter();
-  const { episodeId, type } = useLocalSearchParams<{
+  const { episodeId, animeId, type } = useLocalSearchParams<{
     episodeId: string;
+    animeId: string;
     type: 'sub' | 'dub';
   }>();
 
@@ -60,7 +33,7 @@ const WatchScreen = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true); // Autoplay is on, so start as playing
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState<number | null>(null);
 
@@ -68,21 +41,25 @@ const WatchScreen = () => {
     data: streamingData,
     isLoading,
     error: queryError,
-  } = useQuery<StreamingResponse>({
-    queryKey: ['streaming', episodeId, type],
-    queryFn: () => fetchAnimeStreamingLink(episodeId, type as Type),
-    enabled: !!episodeId && !!type,
+  } = useQuery<AnikotoStreamResponse>({
+    queryKey: ['streaming', animeId, episodeId, type],
+    queryFn: () => fetchAnimeStreamingLink(animeId, episodeId),
+    enabled: !!animeId && !!episodeId,
     staleTime: 0,
   });
 
-  const videoSource = streamingData?.data?.sources?.[0]?.url;
-  const videoHeaders = streamingData?.data?.headers;
-  const subtitleTracks = streamingData?.data?.tracks || [];
+  const primaryServer =
+    streamingData?.data?.servers?.find((s) => s.type === type && s.m3u8Url) ||
+    streamingData?.data?.servers?.find((s) => s.type === type) ||
+    streamingData?.data?.servers?.[0];
+  const videoSource = primaryServer?.m3u8Url;
+  const videoHeaders = { Referer: primaryServer?.referer };
+  const subtitleTracks = primaryServer?.subtitles || [];
 
   // Filter out thumbnail tracks and prepare subtitle tracks for VLC
   const validSubtitleTracks: SubtitleTrack[] = subtitleTracks
-    .filter((track) => track.lang?.toLowerCase() !== 'thumbnails' && (track.url || track.file))
-    .map((track) => {
+    .filter((track: any) => track.lang?.toLowerCase() !== 'thumbnails' && (track.url || track.file))
+    .map((track: any) => {
       const url = track.url || track.file || '';
       return {
         uri: url,
@@ -172,6 +149,7 @@ const WatchScreen = () => {
           style={{ width: '100%', height: '100%' }}
           subtitleUri={selectedSubtitleUri}
           autoplay
+          paused={!isPlaying}
           textTrack={selectedSubtitleIndex !== null ? selectedSubtitleIndex : 0}
           rate={1.0}
           onProgress={(data: any) => {
@@ -222,13 +200,7 @@ const WatchScreen = () => {
         </Text>
         <TouchableOpacity
           className="rounded bg-lime-600 px-3 py-1.5"
-          onPress={() => {
-            if (isPlaying) {
-              vlcPlayerRef.current?.pause();
-            } else {
-              vlcPlayerRef.current?.play();
-            }
-          }}>
+          onPress={() => setIsPlaying(!isPlaying)}>
           <Text className="font-bold text-white">{isPlaying ? 'Pause' : 'Play'}</Text>
         </TouchableOpacity>
       </View>

@@ -1,103 +1,105 @@
 import {
-  AnimeData,
-  AnimeInfoResponse,
-  CategoryResponse,
+  AnikotoHomeResponse,
   SearchParams,
-  SearchResponse,
+  AnikotoSearchResponse,
+  AnikotoDetailsResponse,
+  AnikotoEpisodesResponse,
+  AnikotoStreamResponse,
 } from '~/types';
 
-const BASE_URL = '';
+const ANIKOTO_BASE_URL = 'https://dainsleif6284-anikoto-api.hf.space';
 
-// Utility function to fetch data
-async function fetchData(endpoint: string): Promise<any> {
-  try {
-    const response = await fetch(`${BASE_URL}/${endpoint}`);
-    if (!response.ok) throw new Error(`Error fetching data from ${endpoint}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    throw error;
+async function fetchAbsoluteData<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Error fetching data from ${url}`);
   }
+
+  return response.json();
 }
 
-export const fetchHomePage = async (): Promise<AnimeData> => {
-  const data = await fetchData('api/v2/hianime/home');
-  // console.log(data);
-  return data?.data;
+export const fetchHealth = async (): Promise<any> => {
+  return await fetchAbsoluteData<any>(`${ANIKOTO_BASE_URL}/health`);
 };
 
-enum SortOption {
-  All = 'all',
-  Other = 'other',
-  '0-9' = '0-9',
-}
-
-export const fetchAToZAnime = async (
-  sortOption: SortOption,
-  page: number = 1
-): Promise<AnimeData> => {
-  const data = await fetchData(`api/v2/hianime/azlist/${sortOption}?page=${page}`);
-  return data?.data;
+export const fetchHomePage = async (): Promise<AnikotoHomeResponse> => {
+  return await fetchAbsoluteData<AnikotoHomeResponse>(`${ANIKOTO_BASE_URL}/api/anime/home`);
 };
 
-export const fetchSearchDetails = async (params: SearchParams): Promise<SearchResponse> => {
+export const fetchSearchDetails = async (params: SearchParams): Promise<AnikotoSearchResponse> => {
   const { q, filters, page = 1 } = params;
 
-  let queryString = `q=${encodeURIComponent(q)}&page=${page}`;
+  const queryParams = new URLSearchParams({
+    q,
+    page: String(page),
+    sort: filters?.sort || 'default',
+  });
 
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        queryString += `&${key}=${encodeURIComponent(value)}`;
+      if (!value || key === 'sort') {
+        return;
+      }
+
+      if (key === 'genres') {
+        queryParams.append('genre[]', value);
+        return;
+      }
+
+      if (key === 'season') {
+        queryParams.append('season[]', value);
+        return;
+      }
+
+      if (key === 'language') {
+        queryParams.append('language[]', value);
+        return;
+      }
+
+      if (key === 'status') {
+        queryParams.append('status[]', value);
+        return;
+      }
+
+      if (key === 'rated') {
+        queryParams.append('rating[]', value);
+        return;
+      }
+
+      if (key === 'type') {
+        queryParams.append('term_type[]', value);
+        return;
+      }
+
+      if (key === 'start_date') {
+        queryParams.append('year[]', value);
       }
     });
   }
 
-  const data = await fetchData(`api/v2/hianime/search?${queryString}`);
-  // console.log(data);
-  return data;
+  return await fetchAbsoluteData<AnikotoSearchResponse>(
+    `${ANIKOTO_BASE_URL}/api/anime/search?${queryParams.toString()}`
+  );
 };
 
-export const fetchCategory = async (category: string): Promise<CategoryResponse> => {
-  const data = await fetchData(`api/v2/hianime/category/${category}`);
-  // console.log(data);
-  return data;
+export const fetchAnimeById = async (slug: string): Promise<AnikotoDetailsResponse> => {
+  return await fetchAbsoluteData<AnikotoDetailsResponse>(
+    `${ANIKOTO_BASE_URL}/api/anime/details/${slug}`
+  );
 };
 
-export const fetchProducerAnime = async (
-  producer: string, // only in kebab case
-  page: number = 1
-): Promise<AnimeData> => {
-  const data = await fetchData(`api/v2/hianime/producer/${producer}?page=${page}`);
-  return data?.data;
+export const fetchAnimeEpisode = async (slug: string): Promise<AnikotoEpisodesResponse> => {
+  return await fetchAbsoluteData<AnikotoEpisodesResponse>(
+    `${ANIKOTO_BASE_URL}/api/anime/episodes/${slug}`
+  );
 };
-
-export const fetchAnimeById = async (animeId: string): Promise<AnimeInfoResponse> => {
-  const data = await fetchData(`api/v2/hianime/anime/${animeId}`);
-  // console.log(data);
-  return data;
-};
-
-export const fetchAnimeEpisode = async (animeId: string) => {
-  const data = await fetchData(`api/v2/hianime/anime/${animeId}/episodes`);
-  // console.log(data);
-  return data;
-};
-
-export enum Type {
-  SUB = 'sub',
-  DUB = 'dub',
-}
 
 export const fetchAnimeStreamingLink = async (
-  episodeId: string,
-  type: Type,
-  server: string = 'hd-1'
-) => {
-  const data = await fetchData(
-    `api/v2/hianime/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${type}`
+  slug: string,
+  episodeNumber: string
+): Promise<AnikotoStreamResponse> => {
+  return await fetchAbsoluteData<AnikotoStreamResponse>(
+    `${ANIKOTO_BASE_URL}/api/anime/stream/${slug}/${episodeNumber}`
   );
-  // console.log(data);
-  return data;
 };

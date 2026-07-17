@@ -20,7 +20,7 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEn
   const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
   const handleNavigation = () => {
-    router.push({ pathname: '/anime/[id]', params: { id: item.id, poster: item.poster } });
+    router.push({ pathname: '/anime/[id]', params: { id: item.slug, poster: item.image } });
   };
 
   return (
@@ -30,7 +30,7 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEn
       className="flex-1 items-center justify-center p-2">
       <View className="overflow-hidden rounded-2xl">
         <AnimatedImageBackground
-          source={{ uri: item.poster }}
+          source={{ uri: item.image }}
           style={styles.Image}
           sharedTransitionTag="image">
           {detailsEnabled && (
@@ -41,13 +41,9 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEn
                     <Star1 variant="Bold" size={12} color="#000" />
                     <Text className="font-salsa text-black">{item.rating}</Text>
                   </View>
-                ) : item.episodes?.sub || item.episodes?.dub ? (
+                ) : item.sub || item.dub ? (
                   <Text className="font-salsa font-bold text-black">
-                    {item.episodes?.sub && item.episodes?.dub
-                      ? `Sub | Dub`
-                      : item.episodes?.sub
-                        ? `Sub`
-                        : `Dub`}
+                    {item.sub && item.dub ? `Sub | Dub` : item.sub ? `Sub` : `Dub`}
                   </Text>
                 ) : (
                   <Text>{item.type}</Text>

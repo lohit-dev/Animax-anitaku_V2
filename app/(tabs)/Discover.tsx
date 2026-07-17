@@ -9,7 +9,7 @@ import RowItem from '~/components/home/RowItem';
 import SearchInput from '~/components/search/SearchInput';
 import AnimeCard from '~/components/shared/AnimeCard';
 import { hp, wp } from '~/helpers/common';
-import { fetchCategory, fetchSearchDetails } from '~/services/AnimeService';
+import { fetchSearchDetails } from '~/services/AnimeService';
 import { Anime, SearchResponse } from '~/types';
 
 const Discover = () => {
@@ -32,32 +32,35 @@ const Discover = () => {
   // Query for anime categories: Subbed and Dubbed
   const { data: subbedAnimeData } = useQuery({
     queryKey: ['category', 'subbed-anime'],
-    queryFn: () => fetchCategory('subbed-anime'),
+    queryFn: () => fetchSearchDetails({ q: '', filters: { language: 'sub' } }),
   });
 
   const { data: dubbedAnimeData } = useQuery({
     queryKey: ['category-dubbed', 'dubbed-anime'],
-    queryFn: () => fetchCategory('dubbed-anime'),
+    queryFn: () => fetchSearchDetails({ q: '', filters: { language: 'dub' } }),
   });
 
   // Update searchAnimes when SearchResults changes
   useEffect(() => {
-    if (SearchResults?.data.animes) {
-      setSearchAnimes(SearchResults.data.animes);
+    if (SearchResults?.results) {
+      setSearchAnimes(SearchResults.results as Anime[]);
     }
   }, [SearchResults]);
 
   // Update subbedAnime when subbedAnimeData changes
   useEffect(() => {
-    if (subbedAnimeData?.data.animes) {
-      setSubbedAnime(subbedAnimeData.data.animes);
+    if (subbedAnimeData?.results) {
+      const subOnly = subbedAnimeData.results.filter(
+        (anime) => anime.languages?.includes('Sub') && !anime.languages?.includes('Dub')
+      );
+      setSubbedAnime(subOnly as Anime[]);
     }
   }, [subbedAnimeData]);
 
   // Update dubbedAnime when dubbedAnimeData changes
   useEffect(() => {
-    if (dubbedAnimeData?.data.animes) {
-      setDubbedAnime(dubbedAnimeData.data.animes);
+    if (dubbedAnimeData?.results) {
+      setDubbedAnime(dubbedAnimeData.results as Anime[]);
     }
   }, [dubbedAnimeData]);
 
@@ -76,13 +79,13 @@ const Discover = () => {
   // };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
+    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-neutral-950">
       {/* Search Input */}
       <SearchInput text={searchQuery} onChangeText={setSearchQuery} />
 
       {/* Conditional Rendering: Show only when searchQuery is empty */}
       {!searchQuery && (
-        <ScrollView>
+        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
           {/* Title Section */}
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             <Text className="font-salsa text-center text-white" style={{ fontSize: wp(10) }}>
@@ -143,6 +146,7 @@ const Discover = () => {
           initialNumToRender={10}
           maxToRenderPerBatch={20}
           onEndReachedThreshold={0.5}
+          contentContainerStyle={{ paddingBottom: 110 }}
         />
       )}
 

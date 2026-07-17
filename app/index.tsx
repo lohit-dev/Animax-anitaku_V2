@@ -8,7 +8,7 @@ export default function Index() {
   const handleRouting = () => router.push('/(tabs)/Home');
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView edges={['left', 'right']} className="flex-1">
       <View className="flex-1 items-center justify-center bg-neutral-950">
         <TouchableOpacity onPress={handleRouting}>
           <Text className="font-salsa rounded-xl bg-lime-800 px-3 py-2 text-4xl text-white">

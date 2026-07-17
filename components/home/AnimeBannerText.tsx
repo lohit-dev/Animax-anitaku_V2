@@ -20,7 +20,7 @@ type AnimeBannerTextProps = {
 
 const AnimeBannerText = ({ item, index, x, onPress }: AnimeBannerTextProps) => {
   const { width } = useWindowDimensions();
-  const titleHeight = item.jname.length > 22 ? hp(12) : hp(9);
+  const titleHeight = (item.title?.length || 0) > 20 ? hp(12) : hp(9);
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateYAnim = interpolate(
@@ -47,22 +47,22 @@ const AnimeBannerText = ({ item, index, x, onPress }: AnimeBannerTextProps) => {
     <Pressable onPress={onPress}>
       <Animated.View style={[styles.container, animatedStyle]}>
         <View
-          className="absolute bottom-0 left-0 right-0 px-3 text-center text-white"
+          className="absolute bottom-2 left-0 right-0 px-3 text-center text-white"
           style={[styles.title, { height: titleHeight }]}>
           <Text
-            className="font-salsa pt-3 text-center text-3xl font-semibold text-white"
+            className="font-salsa px-2 pt-3 text-center text-3xl font-semibold text-white"
             numberOfLines={2}
             ellipsizeMode="tail">
-            {getFormattedTitle(item.jname, 'text-4xl font-salsa')}
+            {getFormattedTitle(item.title || '', 'text-4xl font-salsa')}
           </Text>
           <View className="flex-row flex-wrap items-center justify-center px-14">
-            {item?.otherInfo?.map((info, i) => (
+            {[item.type || item.quality, item.date].filter(Boolean).map((info, i, arr) => (
               <React.Fragment key={i}>
                 <Text
                   className={`font-salsa text-base font-semibold text-gray-300 ${i === 0 ? 'text-lg text-lime-300' : ''}`}>
                   {info}
                 </Text>
-                {i < info.length - 1 && (
+                {i < arr.length - 1 && (
                   <Text className="font-salsa text-2xl text-lime-300"> • </Text>
                 )}
               </React.Fragment>

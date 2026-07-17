@@ -12,11 +12,9 @@ export const useBackButton = () => {
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
+      return () => subscription.remove();
     }, [router])
   );
 };

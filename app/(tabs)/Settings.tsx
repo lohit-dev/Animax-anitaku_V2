@@ -84,14 +84,14 @@ const Settings = () => {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
+    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-neutral-950">
       <View className="relative">
         <LinearGradient
           colors={['rgba(163, 230, 53, 0.2)', 'transparent']}
           className="absolute h-72 w-full rounded-full"
         />
       </View>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
         <View className="mt-16 items-center px-6 pt-8">
           <Animated.View entering={FadeInDown.delay(100)} className="items-center">
             <Image

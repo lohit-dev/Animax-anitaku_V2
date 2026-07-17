@@ -50,10 +50,17 @@ const EpisodeListSheet = ({
     enabled: !!animeId,
   });
 
-  const episodes = useMemo(() => {
-    if (!episodeData?.data?.episodes) return [];
-    return episodeData.data.episodes;
-  }, [episodeData]);
+  const episodes: Episode[] = useMemo(() => {
+    if (!episodeData) return [];
+    return episodeData
+      .filter((ep: any) => (type === 'dub' ? ep.dub : ep.sub))
+      .map((ep: any) => ({
+        episodeId: ep.slug || ep.id,
+        number: parseFloat(ep.episode) || 0,
+        title: ep.title || `Episode ${ep.episode}`,
+        isFiller: false,
+      }));
+  }, [episodeData, type]);
 
   const filteredAndSortedEpisodes = useMemo(() => {
     setIsSearching(true);
@@ -88,12 +95,12 @@ const EpisodeListSheet = ({
     setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleEpisodePress = (episodeId: string) => {
+  const handleEpisodePress = (episode: Episode) => {
     bottomSheetRef.current?.dismiss?.();
     router.push({
       pathname: '/anime/watch/[episodeId]',
       params: {
-        episodeId,
+        episodeId: episode.number.toString(),
         animeId,
         type,
       },
@@ -102,14 +109,14 @@ const EpisodeListSheet = ({
 
   const renderEpisodeCard = useCallback(
     ({ item, index }: { item: Episode; index: number }) => (
-      <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(Math.min(index, 12) * 50).duration(300)}>
         <TouchableOpacity
           className="mx-4 mb-4 overflow-hidden rounded-xl bg-neutral-800/40 p-4"
           style={{
             borderLeftWidth: 4,
             borderLeftColor: item.isFiller ? '#ef4444' : '#84cc16',
           }}
-          onPress={() => handleEpisodePress(item.episodeId)}>
+          onPress={() => handleEpisodePress(item)}>
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
@@ -216,6 +223,15 @@ const EpisodeListSheet = ({
               renderItem={renderEpisodeCard}
               keyExtractor={(item: Episode) => item.episodeId}
               contentContainerStyle={{ paddingVertical: 16 }}
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+              getItemLayout={(_, index) => ({
+                length: 84, // estimated height
+                offset: 84 * index,
+                index,
+              })}
             />
           )}
         </View>

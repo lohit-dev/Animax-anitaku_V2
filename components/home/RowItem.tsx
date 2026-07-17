@@ -24,16 +24,16 @@ const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowI
       <AnimatedTouchableOpacity
         entering={FadeInRight.delay(index * 200).duration(500)}
         onPress={() => {
-          router.push({ pathname: '/anime/[id]', params: { id: item.id, poster: item.poster } });
+          router.push({ pathname: '/anime/[id]', params: { id: item.slug, poster: item.image } });
         }}
         className="flex px-2">
         <View className="overflow-hidden rounded-full">
           <ImageBackground
-            source={{ uri: item.poster }}
+            source={{ uri: item.image }}
             className="flex items-center justify-center"
             style={styles.roundedImage}>
             <View className="absolute bottom-0 left-0 right-0 top-0 z-auto bg-black opacity-50" />
-            <Text className="font-salsa text-5xl text-lime-400">{item.rank}</Text>
+            <Text className="font-salsa text-5xl text-lime-400">{item.rank || index + 1}</Text>
           </ImageBackground>
         </View>
       </AnimatedTouchableOpacity>
