@@ -130,13 +130,93 @@ export type AnikotoStreamResponse = {
   };
 };
 
+export enum AnimeLanguage {
+  SUB = 'sub',
+  DUB = 'dub',
+}
+
+export enum AnimeType {
+  Movie = 'Movie',
+  Music = 'Music',
+  ONA = 'ONA',
+  OVA = 'OVA',
+  Special = 'Special',
+  TV = 'TV',
+  TV_SHORT = 'TV_SHORT',
+  TV_Special = 'TV Special',
+}
+
+export enum AnimeSeason {
+  Fall = 'Fall',
+  Summer = 'Summer',
+  Spring = 'Spring',
+  Winter = 'Winter',
+}
+
+export enum AnimeStatus {
+  FinishedAiring = 'Finished Airing',
+  CurrentlyAiring = 'Currently Airing',
+  NotYetAired = 'Not yet aired',
+}
+
+export enum AnimeGenre {
+  Action = 'Action',
+  Adventure = 'Adventure',
+  BoysLove = 'Boys Love',
+  Cars = 'Cars',
+  Comedy = 'Comedy',
+  Dementia = 'Dementia',
+  Demons = 'Demons',
+  Drama = 'Drama',
+  Ecchi = 'Ecchi',
+  Erotica = 'Erotica',
+  Fantasy = 'Fantasy',
+  Game = 'Game',
+  GirlsLove = 'Girls Love',
+  Gourmet = 'Gourmet',
+  Harem = 'Harem',
+  Historical = 'Historical',
+  Horror = 'Horror',
+  Isekai = 'Isekai',
+  Josei = 'Josei',
+  Kids = 'Kids',
+  Magic = 'Magic',
+  MahouShoujo = 'Mahou Shoujo',
+  MartialArts = 'Martial Arts',
+  Mecha = 'Mecha',
+  Military = 'Military',
+  Music = 'Music',
+  Mystery = 'Mystery',
+  Parody = 'Parody',
+  Police = 'Police',
+  Psychological = 'Psychological',
+  Romance = 'Romance',
+  Samurai = 'Samurai',
+  School = 'School',
+  SciFi = 'Sci-Fi',
+  Seinen = 'Seinen',
+  Shoujo = 'Shoujo',
+  ShoujoAi = 'Shoujo Ai',
+  Shounen = 'Shounen',
+  ShounenAi = 'Shounen Ai',
+  SliceOfLife = 'Slice of Life',
+  Space = 'Space',
+  Sports = 'Sports',
+  SuperPower = 'Super Power',
+  Supernatural = 'Supernatural',
+  Suspense = 'Suspense',
+  Thriller = 'Thriller',
+  Unknown = 'unknown',
+  Vampire = 'Vampire',
+}
+
 export type SearchFilters = {
-  genres?: string;
-  type?: string;
+  genres?: AnimeGenre | string;
+  type?: AnimeType | string;
   sort?: string;
-  season?: string;
-  language?: string;
-  status?: string;
+  season?: AnimeSeason | string;
+  language?: AnimeLanguage | string;
+  status?: AnimeStatus | string;
   rated?: string;
   start_date?: string;
   score?: string;

@@ -79,10 +79,10 @@ export default TabBar;
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    borderRadius: wp(6), // We can rely strictly on wp(6)
+    borderRadius: wp(7),
     elevation: 2,
-    left: wp(6),
-    right: wp(6),
+    left: wp(5),
+    right: wp(5),
     shadowOffset: { width: 0, height: 30 },
     shadowOpacity: 0.2,
     shadowRadius: 20,

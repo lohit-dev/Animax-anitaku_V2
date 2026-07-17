@@ -19,17 +19,7 @@
       ],
       "expo-font",
       "expo-web-browser",
-      [
-        "react-native-vlc-media-player",
-        {
-          "ios": {
-            "includeVLCKit": false
-          },
-          "android": {
-            "legacyJetifier": false
-          }
-        }
-      ],
+
       "expo-splash-screen",
       "expo-status-bar"
     ],
