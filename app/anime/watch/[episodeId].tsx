@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { File, Paths } from 'expo-file-system';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -13,7 +14,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Video, { TextTrackType } from 'react-native-video';
-import { File, Paths } from 'expo-file-system';
+
 import { fetchAnimeStreamingLink } from '~/services/AnimeService';
 import { AnikotoStreamResponse } from '~/types';
 
