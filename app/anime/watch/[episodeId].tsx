@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Setting2 } from 'iconsax-react-native';
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,100 @@ interface SubtitleTrack {
   isDefault: boolean;
 }
 
+interface SubtitleCue {
+  startTime: number;
+  endTime: number;
+  text: string;
+}
+
+interface DownloadedSubtitleVtt {
+  content: string;
+  fileUri: string;
+}
+
+// Test the platform renderer first. Change this to 'custom' to return to the
+// React overlay renderer without changing the download or parsing pipeline.
+const subtitleRenderer = 'native' as const;
+
+const parseVttTimestamp = (timestamp: string) => {
+  const values = timestamp.trim().replace(',', '.').split(':').map(Number);
+  if (values.some(Number.isNaN)) return null;
+
+  if (values.length === 3) {
+    return values[0] * 60 * 60 + values[1] * 60 + values[2];
+  }
+
+  return values.length === 2 ? values[0] * 60 + values[1] : null;
+};
+
+const parseVttCues = (content: string): SubtitleCue[] =>
+  content
+    .replace(/^\uFEFF?WEBVTT[^\n]*\n?/i, '')
+    .split(/\r?\n\s*\r?\n/)
+    .flatMap((block) => {
+      const lines = block.split(/\r?\n/).filter(Boolean);
+      const timingLineIndex = lines.findIndex((line) => line.includes('-->'));
+      if (timingLineIndex === -1) return [];
+
+      const [start, endWithSettings] = lines[timingLineIndex].split('-->');
+      const startTime = parseVttTimestamp(start);
+      // The value after `-->` starts with a space in standard VTT files.
+      // Trim it before taking the timestamp, otherwise every end time is empty.
+      const endTime = parseVttTimestamp(endWithSettings.trim().split(/\s+/)[0]);
+      const text = lines
+        .slice(timingLineIndex + 1)
+        .join('\n')
+        .replace(/<[^>]*>/g, '')
+        .trim();
+
+      return startTime !== null && endTime !== null && text ? [{ startTime, endTime, text }] : [];
+    });
+
+const subtitleDownloadCache = new Map<string, Promise<DownloadedSubtitleVtt>>();
+
+const hashSubtitleUrl = (url: string) => {
+  let hash = 0;
+  for (let index = 0; index < url.length; index += 1) {
+    hash = (hash * 31 + url.charCodeAt(index)) | 0;
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const loadSubtitleVtt = (url: string, referer: string) => {
+  const cacheKey = `${url}|${referer}`;
+  const existingRequest = subtitleDownloadCache.get(cacheKey);
+  if (existingRequest) return existingRequest;
+
+  const request = (async () => {
+    const subtitleFile = new File(Paths.cache, `subtitle-${hashSubtitleUrl(url)}.vtt`);
+
+    if (subtitleFile.exists) {
+      const cachedContent = await subtitleFile.text();
+      if (cachedContent.includes('-->')) {
+        return { content: cachedContent, fileUri: subtitleFile.uri };
+      }
+    }
+
+    const downloadedFile = await File.downloadFileAsync(url, subtitleFile, {
+      headers: { Referer: referer },
+      idempotent: true,
+    });
+    return { content: await downloadedFile.text(), fileUri: downloadedFile.uri };
+  })();
+
+  subtitleDownloadCache.set(cacheKey, request);
+  request.catch(() => subtitleDownloadCache.delete(cacheKey));
+  return request;
+};
+
+const getPreferredSubtitleIndex = (tracks: SubtitleTrack[]) => {
+  const englishIndex = tracks.findIndex((track) => track.title.toLowerCase().includes('english'));
+  if (englishIndex !== -1) return englishIndex;
+
+  const defaultIndex = tracks.findIndex((track) => track.isDefault);
+  return defaultIndex !== -1 ? defaultIndex : tracks.length > 0 ? 0 : null;
+};
+
 const WatchScreen = () => {
   const router = useRouter();
   const { episodeId, animeId, type } = useLocalSearchParams<{
@@ -32,7 +126,6 @@ const WatchScreen = () => {
     type: 'sub' | 'dub';
   }>();
 
-  const vlcPlayerRef = useRef<any>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(true);
@@ -40,7 +133,10 @@ const WatchScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'servers' | 'subtitles'>('servers');
   const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState<number | null>(null);
-  const [localSubtitleUri, setLocalSubtitleUri] = useState<string | undefined>();
+  const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [localSubtitleUri, setLocalSubtitleUri] = useState<string | null>(null);
+  const [subtitleStatus, setSubtitleStatus] = useState('Preparing subtitles…');
+  const [readySubtitleKey, setReadySubtitleKey] = useState<string | null>(null);
   const [selectedServerIndex, setSelectedServerIndex] = useState<number | null>(null);
 
   const {
@@ -55,7 +151,6 @@ const WatchScreen = () => {
   });
 
   const servers = streamingData?.data?.servers || [];
-  console.log('data', JSON.stringify(streamingData));
   const primaryServer =
     selectedServerIndex !== null && servers[selectedServerIndex]
       ? servers[selectedServerIndex]
@@ -64,9 +159,7 @@ const WatchScreen = () => {
         servers[0];
 
   const activeServerIndex =
-    selectedServerIndex !== null
-      ? selectedServerIndex
-      : servers.findIndex((s) => s.serverName === primaryServer?.serverName);
+    selectedServerIndex !== null ? selectedServerIndex : servers.indexOf(primaryServer);
 
   const videoSource = primaryServer?.m3u8Url;
   const referer = primaryServer?.referer;
@@ -84,18 +177,19 @@ const WatchScreen = () => {
       }));
   }, [primaryServer]);
 
-  // Pick English first, fallback to API default, then first available
+  // Pick English first, fallback to API default, then the first available track.
+  // A subtitle selection belongs to its server, so reset it whenever the server changes.
   useEffect(() => {
-    if (validSubtitleTracks.length > 0 && selectedSubtitleIndex === null) {
-      let index = validSubtitleTracks.findIndex((track) =>
-        track.title.toLowerCase().includes('english')
-      );
-      if (index === -1) {
-        index = validSubtitleTracks.findIndex((track) => track.isDefault);
-      }
-      setSelectedSubtitleIndex(index !== -1 ? index : 0);
-    }
-  }, [validSubtitleTracks, selectedSubtitleIndex]);
+    const index = getPreferredSubtitleIndex(validSubtitleTracks);
+    setSelectedSubtitleIndex(index);
+    setSubtitleCues([]);
+    setLocalSubtitleUri(null);
+    setReadySubtitleKey(null);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsBuffering(true);
+    setSubtitleStatus(index === null ? 'No subtitles available' : 'Preparing subtitles…');
+  }, [activeServerIndex, validSubtitleTracks]);
 
   useFocusEffect(
     useCallback(() => {
@@ -118,40 +212,72 @@ const WatchScreen = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Stable source reference — only changes when the actual video URL or
-  // referer changes, NOT on every progress-driven re-render.
+  const selectedSubtitleUri =
+    selectedSubtitleIndex !== null ? validSubtitleTracks[selectedSubtitleIndex]?.uri : undefined;
+  const subtitleKey = `${activeServerIndex}:${selectedSubtitleIndex ?? 'none'}:${selectedSubtitleUri ?? ''}`;
+  const isSubtitleReady = readySubtitleKey === subtitleKey;
+
+  const nativeSubtitleTracks = useMemo(() => {
+    if (!localSubtitleUri || selectedSubtitleIndex === null) return [];
+
+    return [
+      {
+        title: validSubtitleTracks[selectedSubtitleIndex]?.title || 'English',
+        language: 'en' as const,
+        type: TextTrackType.VTT,
+        uri: localSubtitleUri,
+      },
+    ];
+  }, [localSubtitleUri, selectedSubtitleIndex, validSubtitleTracks]);
+
   const videoSourceObj = useMemo(
     () => ({
       uri: videoSource ?? undefined,
       headers: referer ? { Referer: referer } : undefined,
+      textTracks: subtitleRenderer === 'native' ? nativeSubtitleTracks : undefined,
     }),
-    [videoSource, referer]
+    [nativeSubtitleTracks, referer, videoSource]
   );
-
-  const selectedSubtitleUri =
-    selectedSubtitleIndex !== null ? validSubtitleTracks[selectedSubtitleIndex]?.uri : undefined;
-  console.log('selectedSubtitleUri', selectedSubtitleUri);
 
   useEffect(() => {
     if (!selectedSubtitleUri || !referer) {
-      setLocalSubtitleUri(undefined);
+      setSubtitleCues([]);
+      setLocalSubtitleUri(null);
+      setSubtitleStatus(
+        selectedSubtitleUri ? 'Subtitle source is unavailable' : 'Subtitles disabled'
+      );
+      setReadySubtitleKey(subtitleKey);
       return;
     }
 
     let isMounted = true;
     const downloadSubtitle = async () => {
       try {
-        const file = await File.downloadFileAsync(selectedSubtitleUri, Paths.cache, {
-          headers: { Referer: referer },
-        });
+        setSubtitleStatus('Downloading subtitles…');
+        // Sidecar tracks do not have a headers option in react-native-video.
+        // Download the VTT with the required Referer, then parse the local copy.
+        const { content, fileUri } = await loadSubtitleVtt(selectedSubtitleUri, referer);
+        const cues = parseVttCues(content);
         if (isMounted) {
-          setLocalSubtitleUri(file.uri);
-          console.log('Subtitle downloaded to:', file.uri);
+          setSubtitleCues(cues);
+          setLocalSubtitleUri(fileUri);
+          setSubtitleStatus(
+            cues.length > 0 ? 'Subtitles ready' : 'Subtitle file has no usable cues'
+          );
+          setReadySubtitleKey(subtitleKey);
+          console.log('[subtitles] loaded', {
+            bytes: content.length,
+            cueCount: cues.length,
+          });
         }
       } catch (error) {
-        console.error('Failed to download subtitle', error);
+        console.error('[subtitles] download failed', error);
         if (isMounted) {
-          setLocalSubtitleUri(undefined);
+          setSubtitleCues([]);
+          setLocalSubtitleUri(null);
+          setSubtitleStatus(
+            `Could not download subtitles: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     };
@@ -160,32 +286,16 @@ const WatchScreen = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedSubtitleUri, referer]);
+  }, [referer, selectedSubtitleUri, subtitleKey]);
 
-  const textTracks = useMemo(() => {
-    if (!localSubtitleUri || selectedSubtitleIndex === null) return [];
-    const track = validSubtitleTracks[selectedSubtitleIndex];
-    return [
-      {
-        title: track?.title || 'Selected',
-        language: 'en' as any,
-        type: TextTrackType.VTT,
-        uri: localSubtitleUri,
-      },
-    ];
-  }, [localSubtitleUri, selectedSubtitleIndex, validSubtitleTracks]);
-  console.log('textTracks', textTracks);
-
-  const selectedTextTrack = useMemo(() => {
-    if (textTracks && textTracks.length > 0) {
-      return {
-        type: 'title',
-        value: textTracks[0].title,
-      };
-    }
-    return undefined;
-  }, [textTracks]);
-  console.log('selectedTextTrack', selectedTextTrack);
+  const activeSubtitleText = useMemo(
+    () =>
+      subtitleCues
+        .filter((cue) => currentTime >= cue.startTime && currentTime <= cue.endTime)
+        .map((cue) => cue.text)
+        .join('\n'),
+    [currentTime, subtitleCues]
+  );
 
   const handleProgress = useCallback((data: any) => {
     setCurrentTime(data.currentTime);
@@ -234,26 +344,47 @@ const WatchScreen = () => {
       />
 
       <View className="relative h-64 w-full">
-        <Video
-          controls
-          source={videoSourceObj}
-          style={{ width: '100%', height: '100%' }}
-          paused={!isPlaying}
-          textTracks={textTracks}
-          selectedTextTrack={selectedTextTrack as any}
-          rate={1.0}
-          onProgress={handleProgress}
-          onEnd={() => setIsPlaying(false)}
-          onError={handleError}
-          onBuffer={handleBuffer}
-          onLoad={handleLoad}
-          resizeMode="contain"
-          ignoreSilentSwitch="ignore"
-        />
+        {isSubtitleReady ? (
+          <>
+            <Video
+              /* Server entries can have the same name and even the same HLS URL.
+                 The selected index intentionally creates a fresh native player when
+                 the user selects a different server entry. */
+              key={`server-${activeServerIndex}`}
+              controls
+              source={videoSourceObj}
+              style={{ width: '100%', height: '100%' }}
+              paused={!isPlaying}
+              rate={1.0}
+              onProgress={handleProgress}
+              onEnd={() => setIsPlaying(false)}
+              onError={handleError}
+              onBuffer={handleBuffer}
+              onLoad={handleLoad}
+              resizeMode="contain"
+              ignoreSilentSwitch="ignore"
+            />
 
-        {isBuffering && (
+            {!!activeSubtitleText && (
+              <View className="pointer-events-none absolute bottom-3 left-3 right-3 items-center">
+                <Text
+                  className="overflow-hidden rounded bg-black/75 px-3 py-1.5 text-center text-lg font-semibold text-white"
+                  style={{ textShadowColor: '#000', textShadowRadius: 3 }}>
+                  {activeSubtitleText}
+                </Text>
+              </View>
+            )}
+
+            {isBuffering && (
+              <View className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50">
+                <ActivityIndicator size="large" color="#84cc16" />
+              </View>
+            )}
+          </>
+        ) : (
           <View className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50">
             <ActivityIndicator size="large" color="#84cc16" />
+            <Text className="mt-3 text-sm text-white">{subtitleStatus}</Text>
           </View>
         )}
       </View>
@@ -320,7 +451,9 @@ const WatchScreen = () => {
                         setSelectedServerIndex(index);
                         setIsModalVisible(false);
                       }}>
-                      <Text className="text-white">{server.serverName}</Text>
+                      <Text className="text-white">
+                        {server.serverName} ({server.type.toUpperCase()})
+                      </Text>
                     </Pressable>
                   ))
                 )
