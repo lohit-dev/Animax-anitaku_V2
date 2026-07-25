@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
 
 import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
-import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
+// import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
 import EpisodeListSheet from '~/components/details/EpisodeListSheet';
 import InfoRow from '~/components/details/InfoRow';
 import { getFormattedTitle } from '~/helpers/TextFormat';

@@ -32,6 +32,7 @@
     "expo-linking": "~57.0.3",
     "expo-navigation-bar": "~57.0.2",
     "expo-router": "~57.0.6",
+    "expo-screen-orientation": "~57.0.1",
     "expo-splash-screen": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.1",

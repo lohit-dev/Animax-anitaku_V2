@@ -63,6 +63,9 @@ const TabBar = ({ state, descriptors, navigation, insets }: TabBarProps) => {
               // Use a native radius so this stays pill-shaped even if the Tailwind
               // radius utility is not applied by the current NativeWind build.
               style={[
+                {
+                  borderRadius: wp(7),
+                },
                 styles.activeIconPill,
                 isFocused && { backgroundColor: darkTheme.colors.secondaryContainer },
               ]}>
