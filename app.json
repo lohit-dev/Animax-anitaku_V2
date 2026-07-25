@@ -19,7 +19,6 @@
       ],
       "expo-font",
       "expo-web-browser",
-
       "expo-splash-screen",
       "expo-status-bar"
     ],
@@ -36,7 +35,8 @@
       "bundleIdentifier": "com.king-grey.animax",
       "infoPlist": {
         "UIStatusBarHidden": false,
-        "UIViewControllerBasedStatusBarAppearance": false
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
