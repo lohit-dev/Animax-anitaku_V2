@@ -1,8 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Setting2 } from 'iconsax-react-native';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { ArrowLeft } from 'iconsax-react-native';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,7 +14,7 @@ import {
   BackHandler,
   ScrollView,
 } from 'react-native';
-import Video, { TextTrackType } from 'react-native-video';
+import Video from 'react-native-video';
 
 import { fetchAnimeStreamingLink } from '~/services/AnimeService';
 import { AnikotoStreamResponse } from '~/types';
@@ -28,16 +29,8 @@ interface SubtitleCue {
   startTime: number;
   endTime: number;
   text: string;
+  placement: 'top' | 'bottom';
 }
-
-interface DownloadedSubtitleVtt {
-  content: string;
-  fileUri: string;
-}
-
-// Test the platform renderer first. Change this to 'custom' to return to the
-// React overlay renderer without changing the download or parsing pipeline.
-const subtitleRenderer = 'native' as const;
 
 const parseVttTimestamp = (timestamp: string) => {
   const values = timestamp.trim().replace(',', '.').split(':').map(Number);
@@ -48,6 +41,16 @@ const parseVttTimestamp = (timestamp: string) => {
   }
 
   return values.length === 2 ? values[0] * 60 + values[1] : null;
+};
+
+const getCuePlacement = (settings: string, text: string): SubtitleCue['placement'] => {
+  const alignment = text.match(/\{\\an([1-9])\}/)?.[1];
+  if (alignment && ['7', '8', '9'].includes(alignment)) return 'top';
+
+  const line = settings.match(/line:([\d.]+)%?/i)?.[1];
+  if (line && Number(line) <= 35) return 'top';
+
+  return 'bottom';
 };
 
 const parseVttCues = (content: string): SubtitleCue[] =>
@@ -63,17 +66,17 @@ const parseVttCues = (content: string): SubtitleCue[] =>
       const startTime = parseVttTimestamp(start);
       // The value after `-->` starts with a space in standard VTT files.
       // Trim it before taking the timestamp, otherwise every end time is empty.
-      const endTime = parseVttTimestamp(endWithSettings.trim().split(/\s+/)[0]);
-      const text = lines
-        .slice(timingLineIndex + 1)
-        .join('\n')
-        .replace(/<[^>]*>/g, '')
-        .trim();
+      const [endTimestamp, ...settings] = endWithSettings.trim().split(/\s+/);
+      const endTime = parseVttTimestamp(endTimestamp);
+      const rawText = lines.slice(timingLineIndex + 1).join('\n');
+      const text = rawText.replace(/<[^>]*>|\{\\an[1-9]\}/g, '').trim();
 
-      return startTime !== null && endTime !== null && text ? [{ startTime, endTime, text }] : [];
+      return startTime !== null && endTime !== null && text
+        ? [{ startTime, endTime, text, placement: getCuePlacement(settings.join(' '), rawText) }]
+        : [];
     });
 
-const subtitleDownloadCache = new Map<string, Promise<DownloadedSubtitleVtt>>();
+const subtitleDownloadCache = new Map<string, Promise<string>>();
 
 const hashSubtitleUrl = (url: string) => {
   let hash = 0;
@@ -94,7 +97,7 @@ const loadSubtitleVtt = (url: string, referer: string) => {
     if (subtitleFile.exists) {
       const cachedContent = await subtitleFile.text();
       if (cachedContent.includes('-->')) {
-        return { content: cachedContent, fileUri: subtitleFile.uri };
+        return cachedContent;
       }
     }
 
@@ -102,7 +105,7 @@ const loadSubtitleVtt = (url: string, referer: string) => {
       headers: { Referer: referer },
       idempotent: true,
     });
-    return { content: await downloadedFile.text(), fileUri: downloadedFile.uri };
+    return downloadedFile.text();
   })();
 
   subtitleDownloadCache.set(cacheKey, request);
@@ -134,10 +137,17 @@ const WatchScreen = () => {
   const [activeTab, setActiveTab] = useState<'servers' | 'subtitles'>('servers');
   const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState<number | null>(null);
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
-  const [localSubtitleUri, setLocalSubtitleUri] = useState<string | null>(null);
   const [subtitleStatus, setSubtitleStatus] = useState('Preparing subtitles…');
   const [readySubtitleKey, setReadySubtitleKey] = useState<string | null>(null);
   const [selectedServerIndex, setSelectedServerIndex] = useState<number | null>(null);
+  const [showControls, setShowControls] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pendingSeek, setPendingSeek] = useState<number | null>(null);
+  const [resumeAfterTransition, setResumeAfterTransition] = useState(false);
+  const [seekBarWidth, setSeekBarWidth] = useState(0);
+  const videoRef = useRef<any>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     data: streamingData,
@@ -183,7 +193,6 @@ const WatchScreen = () => {
     const index = getPreferredSubtitleIndex(validSubtitleTracks);
     setSelectedSubtitleIndex(index);
     setSubtitleCues([]);
-    setLocalSubtitleUri(null);
     setReadySubtitleKey(null);
     setCurrentTime(0);
     setDuration(0);
@@ -217,32 +226,17 @@ const WatchScreen = () => {
   const subtitleKey = `${activeServerIndex}:${selectedSubtitleIndex ?? 'none'}:${selectedSubtitleUri ?? ''}`;
   const isSubtitleReady = readySubtitleKey === subtitleKey;
 
-  const nativeSubtitleTracks = useMemo(() => {
-    if (!localSubtitleUri || selectedSubtitleIndex === null) return [];
-
-    return [
-      {
-        title: validSubtitleTracks[selectedSubtitleIndex]?.title || 'English',
-        language: 'en' as const,
-        type: TextTrackType.VTT,
-        uri: localSubtitleUri,
-      },
-    ];
-  }, [localSubtitleUri, selectedSubtitleIndex, validSubtitleTracks]);
-
   const videoSourceObj = useMemo(
     () => ({
       uri: videoSource ?? undefined,
       headers: referer ? { Referer: referer } : undefined,
-      textTracks: subtitleRenderer === 'native' ? nativeSubtitleTracks : undefined,
     }),
-    [nativeSubtitleTracks, referer, videoSource]
+    [referer, videoSource]
   );
 
   useEffect(() => {
     if (!selectedSubtitleUri || !referer) {
       setSubtitleCues([]);
-      setLocalSubtitleUri(null);
       setSubtitleStatus(
         selectedSubtitleUri ? 'Subtitle source is unavailable' : 'Subtitles disabled'
       );
@@ -256,11 +250,10 @@ const WatchScreen = () => {
         setSubtitleStatus('Downloading subtitles…');
         // Sidecar tracks do not have a headers option in react-native-video.
         // Download the VTT with the required Referer, then parse the local copy.
-        const { content, fileUri } = await loadSubtitleVtt(selectedSubtitleUri, referer);
+        const content = await loadSubtitleVtt(selectedSubtitleUri, referer);
         const cues = parseVttCues(content);
         if (isMounted) {
           setSubtitleCues(cues);
-          setLocalSubtitleUri(fileUri);
           setSubtitleStatus(
             cues.length > 0 ? 'Subtitles ready' : 'Subtitle file has no usable cues'
           );
@@ -274,7 +267,6 @@ const WatchScreen = () => {
         console.error('[subtitles] download failed', error);
         if (isMounted) {
           setSubtitleCues([]);
-          setLocalSubtitleUri(null);
           setSubtitleStatus(
             `Could not download subtitles: ${error instanceof Error ? error.message : String(error)}`
           );
@@ -288,23 +280,70 @@ const WatchScreen = () => {
     };
   }, [referer, selectedSubtitleUri, subtitleKey]);
 
-  const activeSubtitleText = useMemo(
-    () =>
-      subtitleCues
-        .filter((cue) => currentTime >= cue.startTime && currentTime <= cue.endTime)
-        .map((cue) => cue.text)
-        .join('\n'),
+  const activeSubtitleCues = useMemo(
+    () => subtitleCues.filter((cue) => currentTime >= cue.startTime && currentTime <= cue.endTime),
     [currentTime, subtitleCues]
+  );
+
+  const showPlayerControls = useCallback(() => {
+    setShowControls(true);
+  }, []);
+
+  useEffect(() => {
+    if (!showControls || !isPlaying) return;
+
+    controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3200);
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [isPlaying, showControls]);
+
+  const seekTo = useCallback(
+    (time: number) => {
+      const target = Math.max(0, Math.min(duration || 0, time));
+      videoRef.current?.seek(target);
+      setCurrentTime(target);
+      showPlayerControls();
+    },
+    [duration, showPlayerControls]
+  );
+
+  const changeFullscreen = useCallback(
+    (nextFullscreen: boolean) => {
+      setResumeAfterTransition(isPlaying);
+      setPendingSeek(currentTime);
+      setIsPlaying(false);
+      setIsBuffering(true);
+      setShowControls(true);
+      setIsFullscreen(nextFullscreen);
+    },
+    [currentTime, isPlaying]
   );
 
   const handleProgress = useCallback((data: any) => {
     setCurrentTime(data.currentTime);
   }, []);
 
-  const handleLoad = useCallback((data: any) => {
-    setDuration(data.duration);
-    setIsBuffering(false);
-  }, []);
+  const handleLoad = useCallback(
+    (data: any) => {
+      setDuration(data.duration);
+
+      if (pendingSeek !== null) {
+        const target = pendingSeek;
+        requestAnimationFrame(() => {
+          videoRef.current?.seek(target);
+          setCurrentTime(target);
+          setPendingSeek(null);
+          setIsPlaying(resumeAfterTransition);
+          setIsBuffering(false);
+        });
+        return;
+      }
+
+      setIsBuffering(false);
+    },
+    [pendingSeek, resumeAfterTransition]
+  );
 
   const handleError = useCallback((error: any) => {
     console.log('Video Player onError:', error);
@@ -314,6 +353,164 @@ const WatchScreen = () => {
   const handleBuffer = useCallback((data: any) => {
     setIsBuffering(data.isBuffering);
   }, []);
+
+  const seekFromBar = useCallback(
+    (event: any) => {
+      if (!duration || !seekBarWidth) return;
+      seekTo((event.nativeEvent.locationX / seekBarWidth) * duration);
+    },
+    [duration, seekBarWidth, seekTo]
+  );
+
+  const renderPlayerSurface = (fullscreen: boolean) => {
+    const topCues = activeSubtitleCues.filter((cue) => cue.placement === 'top');
+    const bottomCues = activeSubtitleCues.filter((cue) => cue.placement === 'bottom');
+    const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+    const bottomCaptionOffset = showControls ? (fullscreen ? 108 : 78) : 22;
+    const topCaptionOffset = showControls ? (fullscreen ? 64 : 44) : 14;
+
+    return (
+      <View
+        className="relative w-full overflow-hidden bg-black"
+        style={fullscreen ? { flex: 1 } : { height: 256 }}>
+        <Video
+          key={`server-${activeServerIndex}-${fullscreen ? 'fullscreen' : 'inline'}`}
+          ref={videoRef}
+          controls={false}
+          source={videoSourceObj}
+          style={{ width: '100%', height: '100%' }}
+          paused={!isPlaying}
+          muted={isMuted}
+          rate={1.0}
+          onProgress={handleProgress}
+          onEnd={() => {
+            setIsPlaying(false);
+            setShowControls(true);
+          }}
+          onError={handleError}
+          onBuffer={handleBuffer}
+          onLoad={handleLoad}
+          resizeMode="contain"
+          ignoreSilentSwitch="ignore"
+        />
+
+        <Pressable
+          className="absolute inset-0"
+          onPress={() => setShowControls((visible) => !visible)}
+        />
+
+        {topCues.map((cue, index) => (
+          <View
+            key={`top-${cue.startTime}-${index}`}
+            pointerEvents="none"
+            className="absolute left-3 right-3 items-center"
+            style={{ top: topCaptionOffset + index * 64 }}>
+            <Text className="rounded bg-black/80 px-3 py-1.5 text-center text-lg font-bold text-white">
+              {cue.text}
+            </Text>
+          </View>
+        ))}
+
+        {bottomCues.map((cue, index) => (
+          <View
+            key={`bottom-${cue.startTime}-${index}`}
+            pointerEvents="none"
+            className="absolute left-3 right-3 items-center"
+            style={{ bottom: bottomCaptionOffset + index * 64 }}>
+            <Text className="rounded bg-black/80 px-3 py-1.5 text-center text-lg font-bold text-white">
+              {cue.text}
+            </Text>
+          </View>
+        ))}
+
+        {showControls && (
+          <View pointerEvents="box-none" className="absolute inset-0">
+            <View className="absolute left-0 right-0 top-0 flex-row items-center justify-between bg-black/65 px-4 pb-7 pt-4">
+              <View>
+                <Text className="text-sm font-semibold text-white">Episode {episodeId}</Text>
+                <Text className="mt-0.5 text-xs text-neutral-300">
+                  {selectedSubtitleIndex === null
+                    ? 'Subtitles off'
+                    : validSubtitleTracks[selectedSubtitleIndex]?.title || 'Subtitles'}
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <TouchableOpacity
+                  className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
+                  onPress={() => setIsMuted((muted) => !muted)}>
+                  <Ionicons name={isMuted ? 'volume-mute' : 'volume-high'} size={21} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
+                  onPress={() => {
+                    setIsModalVisible(true);
+                    showPlayerControls();
+                  }}>
+                  <Ionicons name="settings-outline" size={21} color="#fff" />
+                </TouchableOpacity>
+                {fullscreen && (
+                  <TouchableOpacity
+                    className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
+                    onPress={() => changeFullscreen(false)}>
+                    <Ionicons name="contract" size={21} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex-row items-center justify-center gap-7">
+              <TouchableOpacity
+                className="h-12 w-12 items-center justify-center rounded-full bg-black/55"
+                onPress={() => seekTo(currentTime - 10)}>
+                <Ionicons name="play-back" size={23} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="h-16 w-16 items-center justify-center rounded-full bg-lime-500"
+                onPress={() => setIsPlaying((playing) => !playing)}>
+                <Ionicons name={isPlaying ? 'pause' : 'play'} size={31} color="#101010" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="h-12 w-12 items-center justify-center rounded-full bg-black/55"
+                onPress={() => seekTo(currentTime + 10)}>
+                <Ionicons name="play-forward" size={23} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="absolute bottom-0 left-0 right-0 bg-black/75 px-4 pb-4 pt-5">
+              <Pressable
+                className="h-5 justify-center"
+                onLayout={(event) => setSeekBarWidth(event.nativeEvent.layout.width)}
+                onPress={seekFromBar}>
+                <View className="h-1.5 overflow-hidden rounded-full bg-white/25">
+                  <View
+                    className="h-full rounded-full bg-lime-400"
+                    style={{ width: `${progress}%` }}
+                  />
+                </View>
+              </Pressable>
+              <View className="mt-2 flex-row items-center justify-between">
+                <Text className="text-xs font-medium text-white">{formatTime(currentTime)}</Text>
+                <View className="flex-row items-center gap-4">
+                  <Text className="text-xs text-neutral-300">{formatTime(duration)}</Text>
+                  <TouchableOpacity onPress={() => changeFullscreen(!fullscreen)}>
+                    <Ionicons name={fullscreen ? 'contract' : 'expand'} size={21} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {isBuffering && (
+          <View
+            pointerEvents="none"
+            className="absolute inset-0 items-center justify-center bg-black/35">
+            <ActivityIndicator size="large" color="#a3e635" />
+          </View>
+        )}
+      </View>
+    );
+  };
 
   if (isLoading || !videoSource) {
     return (
@@ -343,76 +540,23 @@ const WatchScreen = () => {
         }}
       />
 
-      <View className="relative h-64 w-full">
-        {isSubtitleReady ? (
-          <>
-            <Video
-              /* Server entries can have the same name and even the same HLS URL.
-                 The selected index intentionally creates a fresh native player when
-                 the user selects a different server entry. */
-              key={`server-${activeServerIndex}`}
-              controls
-              source={videoSourceObj}
-              style={{ width: '100%', height: '100%' }}
-              paused={!isPlaying}
-              rate={1.0}
-              onProgress={handleProgress}
-              onEnd={() => setIsPlaying(false)}
-              onError={handleError}
-              onBuffer={handleBuffer}
-              onLoad={handleLoad}
-              resizeMode="contain"
-              ignoreSilentSwitch="ignore"
-            />
+      {isSubtitleReady ? (
+        !isFullscreen && renderPlayerSurface(false)
+      ) : (
+        <View className="h-64 items-center justify-center bg-black">
+          <ActivityIndicator size="large" color="#a3e635" />
+          <Text className="mt-3 text-sm text-white">{subtitleStatus}</Text>
+        </View>
+      )}
 
-            {!!activeSubtitleText && (
-              <View className="pointer-events-none absolute bottom-3 left-3 right-3 items-center">
-                <Text
-                  className="overflow-hidden rounded bg-black/75 px-3 py-1.5 text-center text-lg font-semibold text-white"
-                  style={{ textShadowColor: '#000', textShadowRadius: 3 }}>
-                  {activeSubtitleText}
-                </Text>
-              </View>
-            )}
-
-            {isBuffering && (
-              <View className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50">
-                <ActivityIndicator size="large" color="#84cc16" />
-              </View>
-            )}
-          </>
-        ) : (
-          <View className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50">
-            <ActivityIndicator size="large" color="#84cc16" />
-            <Text className="mt-3 text-sm text-white">{subtitleStatus}</Text>
-          </View>
-        )}
-      </View>
-
-      <View className="flex-row items-center justify-between bg-neutral-800 p-2.5">
-        <Text className="text-sm text-white">
-          {formatTime(currentTime)} / {formatTime(duration)}
-        </Text>
-        <TouchableOpacity
-          className="rounded bg-lime-600 px-3 py-1.5"
-          onPress={() => setIsPlaying(!isPlaying)}>
-          <Text className="font-bold text-white">{isPlaying ? 'Pause' : 'Play'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-row items-center justify-between bg-neutral-800 p-2.5">
-        <Text className="text-sm text-white">
-          Subtitle:{' '}
-          {selectedSubtitleIndex !== null
-            ? validSubtitleTracks[selectedSubtitleIndex]?.title || 'None'
-            : 'No subtitles'}
-        </Text>
-        <TouchableOpacity
-          className="rounded bg-lime-600 p-2"
-          onPress={() => setIsModalVisible(true)}>
-          <Setting2 size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <Modal
+        visible={isFullscreen}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+        onRequestClose={() => changeFullscreen(false)}>
+        <View className="flex-1 bg-black">{renderPlayerSurface(true)}</View>
+      </Modal>
 
       <Modal
         animationType="slide"
