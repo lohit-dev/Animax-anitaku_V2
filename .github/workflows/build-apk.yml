@@ -4,40 +4,34 @@ on:
   release:
     types: [published, prereleased]
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'yarn'
+          cache: yarn
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: zulu
+          java-version: 17
 
-      - name: Install dependencies
-        run: yarn install
+      - run: yarn install
 
-      - name: Expo Prebuild
-        run: npx expo prebuild -p android
+      - run: npx expo prebuild -p android
 
-      - name: Build APK
-        run: |
+      - run: |
           cd android
           ./gradlew assembleRelease
 
-      - name: Upload APK to Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/release/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
