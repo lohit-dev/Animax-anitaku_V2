@@ -33,7 +33,9 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEn
   return (
     <AnimatedTouchableOpacity
       onPress={handleNavigation}
-      entering={FadeInDown.delay(Math.min(index, MAX_STAGGER_ITEMS) * STAGGER_DELAY_MS).duration(400)}
+      entering={FadeInDown.delay(Math.min(index, MAX_STAGGER_ITEMS) * STAGGER_DELAY_MS).duration(
+        400
+      )}
       className="flex-1 items-center justify-center p-2">
       <View className="overflow-hidden rounded-2xl">
         <AnimatedImageBackground

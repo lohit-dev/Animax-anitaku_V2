@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useToast } from 'react-native-toast-notifications';
 import { SelectedVideoTrackType } from 'react-native-video';
 
-
 import { usePlayerStore, RESIZE_MODES } from '~/app/_store/usePlayerStore';
 import {
   getPreferredSubtitleIndex,
@@ -14,11 +13,7 @@ import {
 import { fetchAnimeStreamingLink } from '~/services/AnimeService';
 import { AnikotoStreamResponse, SubtitleTrack } from '~/types';
 
-export const useVideoPlayer = (
-  animeId: string,
-  episodeId: string,
-  type: 'sub' | 'dub'
-) => {
+export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' | 'dub') => {
   const videoRef = useRef<any>(null);
 
   // Zustand selectors (granular to avoid unnecessary renders)
@@ -92,7 +87,13 @@ export const useVideoPlayer = (
     setSubtitleCues([]);
     setReadySubtitleKey(null);
     setSubtitleStatus(index === null ? 'No subtitles available' : 'Loading subtitles…');
-  }, [validSubtitleTracks, setSelectedSubtitleIndex, setSubtitleCues, setReadySubtitleKey, setSubtitleStatus]);
+  }, [
+    validSubtitleTracks,
+    setSelectedSubtitleIndex,
+    setSubtitleCues,
+    setReadySubtitleKey,
+    setSubtitleStatus,
+  ]);
 
   // -----------------------------------------------------------------------
   // Subtitle download
@@ -155,7 +156,15 @@ export const useVideoPlayer = (
     return () => {
       isMounted = false;
     };
-  }, [referer, selectedSubtitleUri, subtitleKey, setSubtitleCues, setSubtitleStatus, setReadySubtitleKey, toast]);
+  }, [
+    referer,
+    selectedSubtitleUri,
+    subtitleKey,
+    setSubtitleCues,
+    setSubtitleStatus,
+    setReadySubtitleKey,
+    toast,
+  ]);
 
   // -----------------------------------------------------------------------
   // Video source object (memoized)

@@ -3,9 +3,9 @@ import { ScrollView, Text, View, Dimensions } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
 import AnimeCard from '~/components/shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';
-import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
 
 const MyList = () => {
   const savedAnimes = useSavedAnimesStore((s) => s.animes);

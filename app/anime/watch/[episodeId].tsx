@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'iconsax-react-native';
 import { useEffect, useMemo, useCallback } from 'react';
 import {
@@ -10,15 +11,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import Video from 'react-native-video';
-import { StatusBar } from 'expo-status-bar';
 
+import { useHistoryStore } from '~/app/_store/useHistoryStore';
 import { usePlayerStore } from '~/app/_store/usePlayerStore';
 import PlayerOverlay from '~/components/watch/PlayerOverlay';
 import SettingsSheet from '~/components/watch/SettingsSheet';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
 import { usePlayerControls } from '~/hooks/usePlayerControls';
 import { useVideoPlayer } from '~/hooks/useVideoPlayer';
-import { useHistoryStore } from '~/app/_store/useHistoryStore';
 
 const WatchScreen = () => {
   const router = useRouter();

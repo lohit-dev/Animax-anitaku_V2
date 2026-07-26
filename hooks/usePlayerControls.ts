@@ -1,5 +1,5 @@
-import * as ScreenOrientation from 'expo-screen-orientation';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, BackHandler, PanResponder } from 'react-native';
 
@@ -220,13 +220,17 @@ export const usePlayerControls = (seekTo: (time: number) => void) => {
         if (!w || !d) return;
         usePlayerStore.getState().setIsScrubbing(true);
         usePlayerStore.getState().setShowControls(true);
-        usePlayerStore.getState().setScrubPreviewTime(clamp(evt.nativeEvent.locationX / w, 0, 1) * d);
+        usePlayerStore
+          .getState()
+          .setScrubPreviewTime(clamp(evt.nativeEvent.locationX / w, 0, 1) * d);
       },
       onPanResponderMove: (evt) => {
         const w = seekBarWidthRef.current;
         const d = durationRef.current;
         if (!w || !d) return;
-        usePlayerStore.getState().setScrubPreviewTime(clamp(evt.nativeEvent.locationX / w, 0, 1) * d);
+        usePlayerStore
+          .getState()
+          .setScrubPreviewTime(clamp(evt.nativeEvent.locationX / w, 0, 1) * d);
       },
       onPanResponderRelease: (evt) => {
         const w = seekBarWidthRef.current;
