@@ -2,7 +2,7 @@ name: Build and Attach APK
 
 on:
   release:
-    types: [published, prereleased]
+    types: [published]
 
 permissions:
   contents: write
