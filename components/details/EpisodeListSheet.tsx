@@ -17,9 +17,12 @@ type Episode = {
 
 type EpisodeListSheetProps = {
   animeId: string;
+  animeTitle: string;
+  animeImage: string;
   type: 'sub' | 'dub';
   bottomSheetRef: RefObject<BottomSheetModal>;
   onEpisodePress?: (episodeId: string) => void;
+  onDismiss?: () => void;
   enablePanDownToClose?: boolean;
   enableBackdropPress?: boolean;
 };
@@ -28,17 +31,19 @@ type SortOrder = 'asc' | 'desc';
 
 const EpisodeListSheet = ({
   animeId,
+  animeTitle,
+  animeImage,
   type,
   bottomSheetRef,
   onEpisodePress,
+  onDismiss,
   enablePanDownToClose = true,
   enableBackdropPress = true,
 }: EpisodeListSheetProps) => {
   const router = useRouter();
-  const snapPoints = useMemo(() => ['50%', '100%'], []);
+  const snapPoints = useMemo(() => ['72%'], []);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [isSearching, setIsSearching] = useState(false);
 
   const {
     data: episodeData,
@@ -63,7 +68,6 @@ const EpisodeListSheet = ({
   }, [episodeData, type]);
 
   const filteredAndSortedEpisodes = useMemo(() => {
-    setIsSearching(true);
     let result = [...episodes];
 
     // Filter by search query
@@ -83,11 +87,6 @@ const EpisodeListSheet = ({
       return b.number - a.number;
     });
 
-    // Add a small delay to show the loader
-    setTimeout(() => {
-      setIsSearching(false);
-    }, 500);
-
     return result;
   }, [episodes, searchQuery, sortOrder]);
 
@@ -95,17 +94,23 @@ const EpisodeListSheet = ({
     setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleEpisodePress = (episode: Episode) => {
-    bottomSheetRef.current?.dismiss?.();
-    router.push({
-      pathname: '/anime/watch/[episodeId]',
-      params: {
-        episodeId: episode.number.toString(),
-        animeId,
-        type,
-      },
-    });
-  };
+  const handleEpisodePress = useCallback(
+    (episode: Episode) => {
+      onEpisodePress?.(episode.episodeId);
+      bottomSheetRef.current?.dismiss?.();
+      router.push({
+        pathname: '/anime/watch/[episodeId]',
+        params: {
+          episodeId: episode.number.toString(),
+          animeId,
+          type,
+          animeTitle,
+          animeImage,
+        },
+      });
+    },
+    [animeId, animeTitle, animeImage, bottomSheetRef, onEpisodePress, router, type]
+  );
 
   const renderEpisodeCard = useCallback(
     ({ item, index }: { item: Episode; index: number }) => (
@@ -133,14 +138,14 @@ const EpisodeListSheet = ({
             </View>
             <TouchableOpacity
               className="rounded-full bg-lime-500 p-3"
-              onPress={() => onEpisodePress?.(item.episodeId)}>
+              onPress={() => handleEpisodePress(item)}>
               <Play size={20} color="#FFF" variant="Bold" />
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Animated.View>
     ),
-    []
+    [handleEpisodePress]
   );
 
   return (
@@ -148,12 +153,13 @@ const EpisodeListSheet = ({
       ref={bottomSheetRef}
       snapPoints={snapPoints}
       index={0}
+      enableDynamicSizing={false}
       enablePanDownToClose={enablePanDownToClose}
       backdropComponent={enableBackdropPress ? undefined : () => null}
       onDismiss={() => {
         setSearchQuery('');
         setSortOrder('asc');
-        setIsSearching(false);
+        onDismiss?.();
       }}
       backgroundStyle={{ backgroundColor: '#12140e' }}
       handleIndicatorStyle={{ backgroundColor: '#4a4a4a' }}>
@@ -196,12 +202,10 @@ const EpisodeListSheet = ({
 
         {/* Episodes List with loading state */}
         <View className="flex-1">
-          {isLoading || isSearching ? (
+          {isLoading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#84cc16" />
-              <Text className="font-salsa mt-2 text-sm text-neutral-400">
-                {isSearching ? 'Searching episodes...' : 'Loading episodes...'}
-              </Text>
+              <Text className="font-salsa mt-2 text-sm text-neutral-400">Loading episodes...</Text>
             </View>
           ) : error ? (
             <View className="flex-1 items-center justify-center px-4">
@@ -227,11 +231,6 @@ const EpisodeListSheet = ({
               maxToRenderPerBatch={10}
               windowSize={5}
               removeClippedSubviews
-              getItemLayout={(_, index) => ({
-                length: 84, // estimated height
-                offset: 84 * index,
-                index,
-              })}
             />
           )}
         </View>

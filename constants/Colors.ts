@@ -99,3 +99,20 @@ export const darkTheme = {
     notification: 'rgb(255, 180, 171)',
   },
 };
+
+// ---------------------------------------------------------------------------
+// Video Player — derived from darkTheme so the watch screen stays in sync
+// with the rest of the app. The lime accent (#A3E635) is kept as-is since
+// the whole app uses it (bg-lime-500, #84cc16, etc.).
+// ---------------------------------------------------------------------------
+export const PLAYER_COLORS = {
+  bg: '#000000',
+  surface: darkTheme.colors.elevation.level1,
+  surfaceRaised: darkTheme.colors.surfaceVariant,
+  divider: darkTheme.colors.border,
+  accent: '#A3E635',
+  text: darkTheme.colors.text,
+  textMuted: darkTheme.colors.onSurfaceVariant,
+  textFaint: darkTheme.colors.outline,
+  danger: darkTheme.colors.error,
+};

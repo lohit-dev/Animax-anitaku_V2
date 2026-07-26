@@ -7,6 +7,16 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { hp, wp } from '~/helpers/common';
 import { Anime } from '~/types';
 
+// Created at module level so React doesn't re-create them every render
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
+
+// Cap the stagger delay so long lists don't take forever to appear.
+// Only the first few visible items get a noticeable cascade; after that
+// the delay plateaus and everything fades in almost together.
+const MAX_STAGGER_ITEMS = 6;
+const STAGGER_DELAY_MS = 80;
+
 interface AnimeCardProps {
   item: Anime;
   index: number;
@@ -16,9 +26,6 @@ interface AnimeCardProps {
 const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEnabled = true }) => {
   const router = useRouter();
 
-  const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-  const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
-
   const handleNavigation = () => {
     router.push({ pathname: '/anime/[id]', params: { id: item.slug, poster: item.image } });
   };
@@ -26,7 +33,7 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(({ item, index, detailsEn
   return (
     <AnimatedTouchableOpacity
       onPress={handleNavigation}
-      entering={FadeInDown.delay(index * 400).duration(500)}
+      entering={FadeInDown.delay(Math.min(index, MAX_STAGGER_ITEMS) * STAGGER_DELAY_MS).duration(400)}
       className="flex-1 items-center justify-center p-2">
       <View className="overflow-hidden rounded-2xl">
         <AnimatedImageBackground

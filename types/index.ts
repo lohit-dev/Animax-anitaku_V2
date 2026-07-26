@@ -240,3 +240,27 @@ export type Anime = Partial<AnikotoHomeSpotlightItem> &
 export type SearchResponse = AnikotoSearchResponse;
 export type AnimeInfoResponse = AnikotoDetailsResponse;
 export type CharacterVoiceActor = any;
+
+// ---------------------------------------------------------------------------
+// Video Player Types
+// ---------------------------------------------------------------------------
+
+export type ResizeModeKey = 'contain' | 'cover' | 'stretch';
+
+export type QualityOption = {
+  height: number; // native px height, e.g. 1080/720/360. 0 = "Auto"
+  label: string;
+};
+
+export type SubtitleTrack = {
+  uri: string;
+  title: string;
+  isDefault: boolean;
+};
+
+export type SubtitleCue = {
+  startTime: number;
+  endTime: number;
+  text: string;
+  placement: 'top' | 'bottom';
+};

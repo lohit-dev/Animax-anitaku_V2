@@ -33,6 +33,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.king-grey.animax",
+      "associatedDomains": ["applinks:animax.app"],
       "infoPlist": {
         "UIStatusBarHidden": false,
         "UIViewControllerBasedStatusBarAppearance": false,
@@ -55,6 +56,17 @@
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "autoVerify": true,
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "animax.app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -65,6 +77,7 @@
       "eas": {
         "projectId": "004f3298-08af-4d62-977e-17650948559f"
       }
-    }
+    },
+    "owner": "king_grey"
   }
 }

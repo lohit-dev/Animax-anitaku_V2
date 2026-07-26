@@ -3379,6 +3379,11 @@ expo-router@~57.0.6:
     standard-navigation "^0.0.5"
     vaul "^1.1.2"
 
+expo-screen-orientation@~57.0.1:
+  version "57.0.1"
+  resolved "https://registry.yarnpkg.com/expo-screen-orientation/-/expo-screen-orientation-57.0.1.tgz#f3fc1f2c2a2217347301a40e5de87ba039e253cc"
+  integrity sha512-pvMaOf2N5mcJNiYijIj0+Anza6vrHvcnAfFeO2yjquvPbejiE8oEh9BP9+Hx8VRnzFMoxiO6bG9W/oOFhtFIDA==
+
 expo-server@^57.0.1:
   version "57.0.1"
   resolved "https://registry.yarnpkg.com/expo-server/-/expo-server-57.0.1.tgz#2362bf576e97250490209ac550c2610b88ba4cc1"
@@ -6900,3 +6905,8 @@ zod@^3.25.76:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
+
+zustand@^5.0.14:
+  version "5.0.14"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.14.tgz#18216c24fcb980cf36898f9c57520e67b1f77855"
+  integrity sha512-/8tAspM5LMPr28b3fwLYrtdj77ECpfZviaP75CMTnwO8ISyaE4GDIG/9rDDYq/cH9D2Xw2A2RXglLInmVBQB/g==

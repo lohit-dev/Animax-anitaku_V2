@@ -5,10 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AnimeCard from '~/components/shared/AnimeCard';
 import { getFormattedTitle } from '~/helpers/TextFormat';
-import { useAppSelector } from '~/hooks/SavedAnimeHook';
+import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
 
 const MyList = () => {
-  const savedAnimes = useAppSelector((state) => state.savedAnimes.animes);
+  const savedAnimes = useSavedAnimesStore((s) => s.animes);
 
   const screenWidth = Dimensions.get('window').width;
   const cardWidth = (screenWidth - 64) / 3;

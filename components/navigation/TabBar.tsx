@@ -58,17 +58,7 @@ const TabBar = ({ state, descriptors, navigation, insets }: TabBarProps) => {
             onPress={onPress}
             className="h-full flex-1 items-center justify-center"
             activeOpacity={0.6}>
-            <View
-              className="mb-1 px-5 py-1"
-              // Use a native radius so this stays pill-shaped even if the Tailwind
-              // radius utility is not applied by the current NativeWind build.
-              style={[
-                {
-                  borderRadius: wp(7),
-                },
-                styles.activeIconPill,
-                isFocused && { backgroundColor: darkTheme.colors.secondaryContainer },
-              ]}>
+            <View style={[styles.iconSlot, isFocused && styles.activeIconPill]}>
               {options.tabBarIcon
                 ? options.tabBarIcon({ focused: isFocused, color, size: 24 })
                 : null}
@@ -86,8 +76,17 @@ const TabBar = ({ state, descriptors, navigation, insets }: TabBarProps) => {
 export default TabBar;
 
 const styles = StyleSheet.create({
+  iconSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 34,
+    minWidth: 64,
+    marginBottom: 4,
+  },
   activeIconPill: {
-    borderRadius: 999,
+    backgroundColor: darkTheme.colors.secondaryContainer,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
   tabBarStyle: {
     borderRadius: wp(7),

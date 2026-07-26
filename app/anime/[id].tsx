@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -19,26 +19,27 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
 
-import { addAnime, removeAnime } from '~/app/_store/savedAnimesSlice';
+import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
 // import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
 import EpisodeListSheet from '~/components/details/EpisodeListSheet';
 import InfoRow from '~/components/details/InfoRow';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
-import { useAppSelector, useAppDispatch } from '~/hooks/SavedAnimeHook';
 import { fetchAnimeById } from '~/services/AnimeService';
 import { Anime, AnimeInfoResponse } from '~/types';
 
 export const AnimeDetails = () => {
   const nav = useRouter();
-  const dispatch = useAppDispatch();
   const [showFullDescription, setShowFullDescription] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const savedAnimes = useAppSelector((state) => state.savedAnimes.animes);
+  const savedAnimes = useSavedAnimesStore((s) => s.animes);
+  const addAnime = useSavedAnimesStore((s) => s.addAnime);
+  const removeAnime = useSavedAnimesStore((s) => s.removeAnime);
   const [selectedType, setSelectedType] = useState<'sub' | 'dub'>('sub');
+  const [isEpisodeSheetOpen, setIsEpisodeSheetOpen] = useState(false);
 
   const {
-    data: anime,
+    data: animeData,
     error,
     isLoading,
   } = useQuery<AnimeInfoResponse>({
@@ -46,7 +47,6 @@ export const AnimeDetails = () => {
     queryFn: () => fetchAnimeById(id),
   });
 
-  const animeData = anime;
   const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
   const titleLength = animeData?.title?.length;
@@ -57,6 +57,26 @@ export const AnimeDetails = () => {
 
   const [isFav, setIsFav] = useState(() => savedAnimes.some((anime) => anime.slug === id));
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  const handleBack = React.useCallback(() => {
+    if (isEpisodeSheetOpen) {
+      bottomSheetRef.current?.dismiss();
+      return;
+    }
+
+    if (nav.canGoBack()) {
+      nav.back();
+      return;
+    }
+
+    nav.replace('/(tabs)/Home');
+  }, [isEpisodeSheetOpen, nav]);
+
+  const openEpisodeSheet = React.useCallback((type: 'sub' | 'dub') => {
+    setSelectedType(type);
+    setIsEpisodeSheetOpen(true);
+    requestAnimationFrame(() => bottomSheetRef.current?.present());
+  }, []);
 
   const handleShare = async () => {
     try {
@@ -82,13 +102,13 @@ export const AnimeDetails = () => {
     }
   };
 
-  const handleAddToLibrary = () => {
+  const handleAddToLibrary = useCallback(() => {
     if (!animeData) return;
 
     if (isFav) {
-      dispatch(removeAnime(id));
+      removeAnime(id as string);
     } else {
-      const mappedAnime: Anime = {
+      const basicAnime: Anime = {
         slug: animeData.id,
         title: animeData.title,
         image: animeData.image,
@@ -96,16 +116,15 @@ export const AnimeDetails = () => {
         rating: animeData.rating,
         type: animeData.type,
       };
-      dispatch(addAnime(mappedAnime));
+      addAnime(basicAnime);
     }
-
     setIsFav(!isFav);
     toast.show(isFav ? 'Removed from library' : 'Added to library', {
       type: 'success',
       placement: 'bottom',
       duration: 2000,
     });
-  };
+  }, [animeData, id, isFav, addAnime, removeAnime, toast]);
 
   // console.log(animeData?.info.charactersVoiceActors);
 
@@ -113,16 +132,12 @@ export const AnimeDetails = () => {
   useFocusEffect(
     React.useCallback(() => {
       const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (bottomSheetRef.current?.present) {
-          bottomSheetRef.current?.dismiss();
-          return true;
-        }
-        nav.back();
+        handleBack();
         return true;
       });
 
       return () => backHandler.remove();
-    }, [nav])
+    }, [handleBack])
   );
 
   if (isLoading) {
@@ -171,18 +186,25 @@ export const AnimeDetails = () => {
         resizeMode="cover"
         style={styles.image}>
         <LinearGradient
-          className="flex-1"
+          style={StyleSheet.absoluteFill}
           colors={[
-            'rgba(0,0,0,0.17)',
-            'rgba(0,0,0,0.09)',
-            'rgba(11, 11, 11,0.95)',
-            'rgba(11, 11, 11,1.4)',
+            'rgba(0,0,0,0.10)',
+            'rgba(0,0,0,0.20)',
+            'rgba(11,11,11,0.88)',
+            'rgba(11,11,11,1)',
           ]}
-          locations={[0.1, 0.5, 0.9, 1]}>
-          <View className="flex-1 justify-between px-4 py-8 pb-12">
-            <SafeAreaView>
-              <View className="mt-1 flex-row items-center justify-between p-3">
-                <TouchableOpacity className="rounded-xl bg-lime-500 p-1" onPress={() => nav.back()}>
+          locations={[0, 0.45, 0.82, 1]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}>
+          <View style={styles.heroContent}>
+            <SafeAreaView className="flex flex-1">
+              <View className="flex-row items-center justify-between px-3">
+                <TouchableOpacity
+                  accessibilityLabel="Go back"
+                  className="rounded-xl bg-lime-500 p-1"
+                  hitSlop={12}
+                  onPress={handleBack}
+                  style={styles.headerBackButton}>
                   <ArrowLeft2 size={26} strokeWidth={2.5} color="#FFF" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleAddToLibrary}>
@@ -256,8 +278,7 @@ export const AnimeDetails = () => {
             <TouchableOpacity
               className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
               onPress={() => {
-                setSelectedType('sub');
-                bottomSheetRef.current?.present();
+                openEpisodeSheet('sub');
               }}>
               <Text className="font-salsa text-lg text-white">Sub</Text>
             </TouchableOpacity>
@@ -265,8 +286,7 @@ export const AnimeDetails = () => {
             <TouchableOpacity
               className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
               onPress={() => {
-                setSelectedType('dub');
-                bottomSheetRef.current?.present();
+                openEpisodeSheet('dub');
               }}>
               <Text className="font-salsa text-lg text-white">Dub</Text>
             </TouchableOpacity>
@@ -281,6 +301,7 @@ export const AnimeDetails = () => {
           onEpisodePress={(episodeId: string) => {
             console.log(`Playing ${selectedType} episode ${episodeId}`);
           }}
+          onDismiss={() => setIsEpisodeSheetOpen(false)}
           enablePanDownToClose
           enableBackdropPress
         />
@@ -343,6 +364,17 @@ export const AnimeDetails = () => {
 export default AnimeDetails;
 
 const styles = StyleSheet.create({
+  headerBackButton: {
+    elevation: 2,
+    zIndex: 2,
+  },
+  heroContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 32,
+    paddingBottom: 48,
+  },
   image: {
     resizeMode: 'stretch',
     width: wp(100),

@@ -12,9 +12,6 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from 'react-native-toast-notifications';
-import { Provider } from 'react-redux';
-
-import { store } from './_store/store';
 
 import { useColorScheme } from '~/hooks/useColorScheme';
 import 'react-native-reanimated';
@@ -70,28 +67,26 @@ export default function RootLayout() {
   };
 
   return (
-    <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <BottomSheetModalProvider>
-            <QueryClientProvider client={queryClient}>
-              <ToastProvider>
-                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                  <StatusBar animated style="inverted" hidden />
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" options={{ headerShown: false }} />
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false }}
-                      initialParams={{ linking }}
-                    />
-                  </Stack>
-                </ThemeProvider>
-              </ToastProvider>
-            </QueryClientProvider>
-          </BottomSheetModalProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <BottomSheetModalProvider>
+          <QueryClientProvider client={queryClient}>
+            <ToastProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar animated style="inverted" hidden />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                    initialParams={{ linking }}
+                  />
+                </Stack>
+              </ThemeProvider>
+            </ToastProvider>
+          </QueryClientProvider>
+        </BottomSheetModalProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

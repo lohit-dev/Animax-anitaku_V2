@@ -20,7 +20,7 @@ type AnimeBannerTextProps = {
 
 const AnimeBannerText = ({ item, index, x, onPress }: AnimeBannerTextProps) => {
   const { width } = useWindowDimensions();
-  const titleHeight = (item.title?.length || 0) > 20 ? hp(12) : hp(9);
+  const titleHeight = (item.title?.length || 0) > 22 ? hp(12) : hp(8);
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateYAnim = interpolate(

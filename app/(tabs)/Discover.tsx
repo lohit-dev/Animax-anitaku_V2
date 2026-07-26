@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import LottieView from 'lottie-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, ScrollView, Text, View } from 'react-native';
@@ -9,6 +9,7 @@ import RowItem from '~/components/home/RowItem';
 import SearchInput from '~/components/search/SearchInput';
 import AnimeCard from '~/components/shared/AnimeCard';
 import { hp, wp } from '~/helpers/common';
+import { useDebounce } from '~/hooks/useDebounce';
 import { fetchSearchDetails } from '~/services/AnimeService';
 import { Anime, SearchResponse } from '~/types';
 
@@ -18,15 +19,25 @@ const Discover = () => {
   const [subbedAnime, setSubbedAnime] = useState<Anime[]>([]);
   const [dubbedAnime, setDubbedAnime] = useState<Anime[]>([]);
 
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
   // Query for search results based on the search query
   const {
     data: SearchResults,
     error,
     isLoading,
-  } = useQuery<SearchResponse>({
-    queryKey: ['searchDetails', searchQuery],
-    queryFn: () => fetchSearchDetails({ q: searchQuery }),
-    enabled: !!searchQuery,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<SearchResponse>({
+    queryKey: ['searchDetails', debouncedSearchQuery],
+    queryFn: ({ pageParam = 1 }) =>
+      fetchSearchDetails({ q: debouncedSearchQuery, page: pageParam as number }),
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.hasNextPage ? lastPage.pagination.currentPage + 1 : undefined;
+    },
+    initialPageParam: 1,
+    enabled: !!debouncedSearchQuery,
   });
 
   // Query for anime categories: Subbed and Dubbed
@@ -42,8 +53,10 @@ const Discover = () => {
 
   // Update searchAnimes when SearchResults changes
   useEffect(() => {
-    if (SearchResults?.results) {
-      setSearchAnimes(SearchResults.results as Anime[]);
+    if (SearchResults?.pages) {
+      setSearchAnimes(SearchResults.pages.flatMap((page) => page.results) as Anime[]);
+    } else {
+      setSearchAnimes([]);
     }
   }, [SearchResults]);
 
@@ -78,6 +91,9 @@ const Discover = () => {
   //   );
   // };
 
+  const isDebouncing = searchQuery !== debouncedSearchQuery;
+  const isSearchLoading = isLoading || isDebouncing;
+
   return (
     <SafeAreaView edges={['left', 'right']} className="flex-1 bg-neutral-950">
       {/* Search Input */}
@@ -109,60 +125,71 @@ const Discover = () => {
       )}
 
       {/* Loading, Error, and Search Results */}
-      {searchQuery && isLoading && (
-        <View className="flex-1 items-center justify-center bg-neutral-950">
+      {searchQuery && isSearchLoading && (
+        <View className="flex-1 items-center justify-center bg-neutral-950 pb-24">
           <LottieView
             source={require('~/assets/lottie/loading.json')}
             autoPlay
             loop
             style={{
-              height: hp(30),
-              width: wp(70),
-              alignSelf: 'center',
+              height: wp(30),
+              width: wp(30),
             }}
           />
         </View>
       )}
       {error && !searchQuery && (
-        <View className="flex flex-1 items-center justify-center bg-neutral-950">
+        <View className="flex-1 items-center justify-center bg-neutral-950 pb-24">
           <LottieView
             source={require('~/assets/lottie/Error.json')}
             autoPlay
             loop
             style={{
-              height: hp(60),
-              width: wp(80),
-              alignSelf: 'center',
+              height: wp(60),
+              width: wp(60),
             }}
           />
         </View>
       )}
 
       {/* Search Results FlatList */}
-      {searchQuery && !isLoading && searchAnimes.length > 0 && (
+      {searchQuery && !isSearchLoading && searchAnimes.length > 0 && (
         <FlatList
           data={searchAnimes}
-          keyExtractor={(_, index) => `searchItem_${index}`}
+          keyExtractor={(item, index) => item.slug || `searchItem_${index}`}
           renderItem={({ item, index }) => <AnimeCard item={item} index={index} />}
           numColumns={3}
-          initialNumToRender={10}
-          maxToRenderPerBatch={20}
+          initialNumToRender={12}
+          maxToRenderPerBatch={15}
+          windowSize={5}
+          removeClippedSubviews
           onEndReachedThreshold={0.5}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View className="items-center py-4">
+                <Text className="text-neutral-400">Loading more...</Text>
+              </View>
+            ) : null
+          }
           contentContainerStyle={{ paddingBottom: 110 }}
         />
       )}
 
       {/* Empty state if no search results */}
-      {searchQuery && !isLoading && searchAnimes.length === 0 && (
-        <View>
+      {searchQuery && !isSearchLoading && searchAnimes.length === 0 && (
+        <View className="flex-1 items-center justify-center pb-24">
           <LottieView
             source={require('~/assets/lottie/no_results_found.json')}
             autoPlay
             loop
             style={{
-              height: hp(60),
-              width: wp(80),
-              alignSelf: 'center',
+              height: wp(60),
+              width: wp(60),
             }}
           />
         </View>
