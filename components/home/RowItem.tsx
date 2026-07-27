@@ -14,11 +14,19 @@ type RowItemProps = {
   data: Anime[] | undefined;
   className?: string;
   rounded?: boolean;
+  testIdPrefix?: string;
 };
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowItemProps) => {
+const RowItem = ({
+  name,
+  seeAll = true,
+  data,
+  className,
+  rounded = false,
+  testIdPrefix,
+}: RowItemProps) => {
   const roundedRenderItem = ({ item, index }: { item: Anime; index: number }) => {
     return (
       <AnimatedTouchableOpacity
@@ -60,7 +68,15 @@ const RowItem = ({ name, seeAll = true, data, className, rounded = false }: RowI
         contentContainerClassName="px-2"
         showsHorizontalScrollIndicator={false}
         renderItem={
-          rounded ? roundedRenderItem : ({ item, index }) => <AnimeCard item={item} index={index} />
+          rounded
+            ? roundedRenderItem
+            : ({ item, index }) => (
+                <AnimeCard
+                  item={item}
+                  index={index}
+                  testID={testIdPrefix ? `${testIdPrefix}-${index}` : undefined}
+                />
+              )
         }
         keyExtractor={(_, index) => index.toString()}
         initialNumToRender={10}

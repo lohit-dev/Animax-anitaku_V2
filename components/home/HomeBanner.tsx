@@ -38,7 +38,7 @@ const HomeBanner = ({ index, item, x, onPress }: HomeBannerProps) => {
   });
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} testID="home-hero-banner">
       <Animated.Image source={{ uri: item.image }} style={[styles.Image, animatedStyle]} />
     </Pressable>
   );

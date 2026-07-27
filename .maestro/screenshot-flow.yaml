@@ -1,0 +1,69 @@
+appId: com.king-grey.animax
+name: Capture streaming flow
+---
+- launchApp
+- waitForAnimationToEnd
+- takeScreenshot: 01-launch
+
+- tapOn: 'Go to Home Screen'
+- waitForAnimationToEnd
+- takeScreenshot: 02-go-to-home-screen
+
+- tapOn: 'Home'
+- waitForAnimationToEnd
+- takeScreenshot: 03-home-tab
+
+- tapOn: 'Discover'
+- waitForAnimationToEnd
+- takeScreenshot: 04-discover-tab
+
+- tapOn: 'My List'
+- waitForAnimationToEnd
+- takeScreenshot: 05-my-list-tab
+
+- tapOn: 'Home'
+- waitForAnimationToEnd
+- takeScreenshot: 06-back-to-home
+
+- swipe:
+    start: 50%, 65%
+    end: 50%, 45%
+    duration: 300
+- waitForAnimationToEnd
+- takeScreenshot: 07-scrolled-home
+
+- tapOn:
+    id: 'latest-episode-1'
+- waitForAnimationToEnd
+- takeScreenshot: 08-anime-details
+
+- tapOn:
+    id: 'detail-sub-button'
+- waitForAnimationToEnd
+- takeScreenshot: 09-episode-sheet-opened
+
+# The BottomSheetFlatList's virtualized cells don't get exposed to the
+# XCUITest accessibility tree at all (confirmed via hierarchy dump - the
+# "Bottom Sheet" node has zero children even with content visibly rendered,
+# and this held true even after removing removeClippedSubviews).
+# id/text selectors can't work here, so we tap by screen coordinates instead.
+
+# Tap the list container first - confirms the sheet region exists and is
+# interactive before we click into it blind.
+- extendedWaitUntil:
+    visible:
+      id: 'episode-list'
+    timeout: 45000
+- tapOn:
+    id: 'episode-list'
+- waitForAnimationToEnd
+- takeScreenshot: 10-episode-list-focused
+
+# Episode 1's card sits just below the search bar when the sheet first
+# opens (before any scrolling). Coordinates are percentage-based so they
+# scale across device sizes, but they DO assume this exact scroll position -
+# revisit if the layout above the list ever changes.
+- tapOn:
+    point: 50%, 51%
+- waitForAnimationToEnd
+- takeScreenshot: 11-episode-1-opened

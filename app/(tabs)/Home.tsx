@@ -200,7 +200,12 @@ const Home = () => {
             data={HomePageData?.data?.topTables?.newlyAdded}
             rounded
           />
-          <RowItem name="Latest Episodes" seeAll data={HomePageData?.data?.recentUpdates} />
+          <RowItem
+            name="Latest Episodes"
+            seeAll
+            data={HomePageData?.data?.recentUpdates}
+            testIdPrefix="latest-episode"
+          />
           <RowItem name="Upcoming Releases" seeAll data={HomePageData?.data?.upcoming} />
           <RowItem name="Top Airing Now" seeAll data={HomePageData?.data?.topTables?.newReleases} />
           <RowItem

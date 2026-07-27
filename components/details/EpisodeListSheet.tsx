@@ -116,6 +116,7 @@ const EpisodeListSheet = ({
     ({ item, index }: { item: Episode; index: number }) => (
       <Animated.View entering={FadeInDown.delay(Math.min(index, 12) * 50).duration(300)}>
         <TouchableOpacity
+          testID={`episode-card-${index}`}
           className="mx-4 mb-4 overflow-hidden rounded-xl bg-neutral-800/40 p-4"
           style={{
             borderLeftWidth: 4,
@@ -223,6 +224,7 @@ const EpisodeListSheet = ({
             </View>
           ) : (
             <BottomSheetFlatList
+              testID="episode-list"
               data={filteredAndSortedEpisodes}
               renderItem={renderEpisodeCard}
               keyExtractor={(item: Episode) => item.episodeId}
@@ -230,7 +232,6 @@ const EpisodeListSheet = ({
               initialNumToRender={15}
               maxToRenderPerBatch={10}
               windowSize={5}
-              removeClippedSubviews
             />
           )}
         </View>

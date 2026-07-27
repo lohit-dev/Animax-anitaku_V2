@@ -276,6 +276,7 @@ export const AnimeDetails = () => {
           </Text>
           <View className="mt-4 flex-row gap-4">
             <TouchableOpacity
+              testID="detail-sub-button"
               className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
               onPress={() => {
                 openEpisodeSheet('sub');
@@ -284,6 +285,7 @@ export const AnimeDetails = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
+              testID="detail-dub-button"
               className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
               onPress={() => {
                 openEpisodeSheet('dub');
