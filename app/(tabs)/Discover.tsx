@@ -54,7 +54,9 @@ const Discover = () => {
   // Update searchAnimes when SearchResults changes
   useEffect(() => {
     if (SearchResults?.pages) {
-      setSearchAnimes(SearchResults.pages.flatMap((page: { results: Anime[] }) => page.results) as Anime[]);
+      setSearchAnimes(
+        SearchResults.pages.flatMap((page: { results: Anime[] }) => page.results) as Anime[]
+      );
     } else {
       setSearchAnimes([]);
     }

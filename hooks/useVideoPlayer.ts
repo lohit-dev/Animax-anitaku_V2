@@ -55,7 +55,9 @@ export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' |
   const primaryServer =
     selectedServerIndex !== null && servers[selectedServerIndex]
       ? servers[selectedServerIndex]
-      : servers.find((s: { type: string; m3u8Url: string | null }) => s.type === type && s.m3u8Url) ||
+      : servers.find(
+          (s: { type: string; m3u8Url: string | null }) => s.type === type && s.m3u8Url
+        ) ||
         servers.find((s: { type: string }) => s.type === type) ||
         servers[0];
 
