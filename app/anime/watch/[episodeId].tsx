@@ -14,9 +14,12 @@ import Video from 'react-native-video';
 
 import { useHistoryStore } from '~/app/_store/useHistoryStore';
 import { usePlayerStore } from '~/app/_store/usePlayerStore';
+import EpisodeList from '~/components/watch/EpisodeList';
 import PlayerOverlay from '~/components/watch/PlayerOverlay';
 import SettingsSheet from '~/components/watch/SettingsSheet';
+import UpNextCard from '~/components/watch/UpNextCard';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
+import { useEpisodeList } from '~/hooks/useEpisodeList';
 import { usePlayerControls } from '~/hooks/usePlayerControls';
 import { useVideoPlayer } from '~/hooks/useVideoPlayer';
 
@@ -71,6 +74,9 @@ const WatchScreen = () => {
     handleVideoTap,
   } = usePlayerControls(seekTo);
 
+  const { data: episodeListData } = useEpisodeList(animeId);
+  const episodes = episodeListData ?? [];
+
   // -----------------------------------------------------------------------
   // Zustand selectors (only what the screen itself needs)
   // -----------------------------------------------------------------------
@@ -93,6 +99,42 @@ const WatchScreen = () => {
     () => subtitleCues.filter((cue) => currentTime >= cue.startTime && currentTime <= cue.endTime),
     [currentTime, subtitleCues]
   );
+
+  // -----------------------------------------------------------------------
+  // Up Next — the episode right after the one currently loaded
+  // -----------------------------------------------------------------------
+
+  const nextEpisode = useMemo(() => {
+    const currentIndex = episodes.findIndex((ep: { id: string }) => ep.id === episodeId);
+    if (currentIndex === -1) return null;
+    return episodes[currentIndex + 1] ?? null;
+  }, [episodes, episodeId]);
+
+  const goToEpisode = useCallback(
+    (target: { id: string } | null) => {
+      if (!target) return;
+      router.replace({
+        pathname: '/anime/watch/[episodeId]',
+        params: {
+          episodeId: target.id,
+          animeId,
+          type,
+          animeTitle,
+          animeImage,
+        },
+      });
+    },
+    [router, animeId, type, animeTitle, animeImage]
+  );
+
+  const handleVideoEnd = useCallback(() => {
+    if (nextEpisode) {
+      goToEpisode(nextEpisode);
+      return;
+    }
+
+    handleEnd();
+  }, [goToEpisode, handleEnd, nextEpisode]);
 
   // -----------------------------------------------------------------------
   // Progress Tracking (History)
@@ -167,7 +209,11 @@ const WatchScreen = () => {
       />
 
       {/* Player container — resizes between inline and fullscreen without
-          remounting the <Video>, so toggling never reloads the stream. */}
+          remounting the <Video>, so toggling never reloads the stream.
+          Kept OUTSIDE the scrollable episode list on purpose: it needs to
+          stay a normal-flow sibling so its `position: absolute` fullscreen
+          fill still covers the whole screen instead of just scrolling away
+          inside a list header. */}
       <View
         style={[
           { backgroundColor: COLORS.bg, overflow: 'hidden' },
@@ -188,7 +234,7 @@ const WatchScreen = () => {
           muted={isMuted}
           rate={1.0}
           onProgress={handleProgress}
-          onEnd={handleEnd}
+          onEnd={handleVideoEnd}
           onError={handleError}
           onBuffer={handleBuffer}
           onLoad={handleLoad}
@@ -224,6 +270,23 @@ const WatchScreen = () => {
             setIsModalVisible(true);
             setShowControls(true);
           }}
+        />
+      </View>
+
+      {/* vertical card */}
+      <View style={{ flex: 1, display: isFullscreen ? 'none' : 'flex' }}>
+        <EpisodeList
+          episodes={episodes}
+          currentEpisodeId={episodeId}
+          fallbackImage={animeImage}
+          onSelectEpisode={(ep) => goToEpisode(ep)}
+          ListHeaderComponent={
+            <UpNextCard
+              episode={nextEpisode}
+              onPlay={() => goToEpisode(nextEpisode)}
+              autoplaySeconds={0}
+            />
+          }
         />
       </View>
 

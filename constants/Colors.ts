@@ -115,4 +115,5 @@ export const PLAYER_COLORS = {
   textMuted: darkTheme.colors.onSurfaceVariant,
   textFaint: darkTheme.colors.outline,
   danger: darkTheme.colors.error,
+  stroke: 'rgba(255, 255, 255, 0.08)',
 };

@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { SearchNormal } from 'iconsax-react-native';
+import { SearchNormal, Thorchain } from 'iconsax-react-native';
 import React from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Searchbar } from 'react-native-paper';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,31 +13,21 @@ type SearchInputProps = {
 const SearchInput = ({ text, onChangeText }: SearchInputProps) => {
   return (
     <SafeAreaView edges={['top']}>
-      <View className="px-4 pb-4 pt-3">
+      <View className="px-6 pb-4 pt-4">
         <Animated.View
-          entering={FadeInDown.delay(300).duration(350)}
-          className="h-12 flex-row items-center rounded-full border border-white/10 bg-neutral-900 px-4">
-          <SearchNormal size={20} color="#a3a3a3" />
-          <TextInput
-            className="ml-3 flex-1 text-base text-white"
-            placeholder="Search anime"
-            placeholderTextColor="#737373"
-            value={text}
+          entering={FadeInDown.delay(650).duration(500)}
+          className="rounded-full bg-lime-50/70">
+          <Searchbar
+            placeholder="Type to Discover Anime..."
             onChangeText={onChangeText}
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="off"
-            returnKeyType="search"
-            selectionColor="#a3e635"
+            value={text}
+            mode="bar"
+            style={styles.container}
+            clearButtonMode="while-editing"
+            clearTextOnFocus
+            icon={() => <SearchNormal size={24} color="#111827" />}
+            traileringIcon={() => <Thorchain size={24} color="#111827" />}
           />
-          {!!text && (
-            <TouchableOpacity
-              accessibilityLabel="Clear search"
-              className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-white/10"
-              onPress={() => onChangeText('')}>
-              <Ionicons name="close" size={18} color="#d4d4d4" />
-            </TouchableOpacity>
-          )}
         </Animated.View>
       </View>
     </SafeAreaView>
@@ -45,3 +35,7 @@ const SearchInput = ({ text, onChangeText }: SearchInputProps) => {
 };
 
 export default SearchInput;
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: 'transparent', padding: 0 },
+});

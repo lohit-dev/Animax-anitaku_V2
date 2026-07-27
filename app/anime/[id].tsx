@@ -296,6 +296,8 @@ export const AnimeDetails = () => {
         {/* Episode List Sheet */}
         <EpisodeListSheet
           animeId={id}
+          animeTitle={animeData.title}
+          animeImage={animeData.image}
           type={selectedType}
           bottomSheetRef={bottomSheetRef as React.RefObject<BottomSheetModal>}
           onEpisodePress={(episodeId: string) => {

@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import RowItem from '~/components/home/RowItem';
 import SearchInput from '~/components/search/SearchInput';
 import AnimeCard from '~/components/shared/AnimeCard';
-import { hp, wp } from '~/helpers/common';
+import { wp } from '~/helpers/common';
 import { useDebounce } from '~/hooks/useDebounce';
 import { fetchSearchDetails } from '~/services/AnimeService';
 import { Anime, SearchResponse } from '~/types';
@@ -54,7 +54,7 @@ const Discover = () => {
   // Update searchAnimes when SearchResults changes
   useEffect(() => {
     if (SearchResults?.pages) {
-      setSearchAnimes(SearchResults.pages.flatMap((page) => page.results) as Anime[]);
+      setSearchAnimes(SearchResults.pages.flatMap((page: { results: Anime[] }) => page.results) as Anime[]);
     } else {
       setSearchAnimes([]);
     }
@@ -64,7 +64,7 @@ const Discover = () => {
   useEffect(() => {
     if (subbedAnimeData?.results) {
       const subOnly = subbedAnimeData.results.filter(
-        (anime) => anime.languages?.includes('Sub') && !anime.languages?.includes('Dub')
+        (anime: Anime) => anime.languages?.includes('Sub') && !anime.languages?.includes('Dub')
       );
       setSubbedAnime(subOnly as Anime[]);
     }
