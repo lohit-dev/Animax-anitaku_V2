@@ -14,11 +14,32 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from 'react-native-toast-notifications';
 
 import { useColorScheme } from '~/hooks/useColorScheme';
+import { AniListRequestError } from '~/services/AniListService';
 import 'react-native-reanimated';
 import '../global.css';
 
 SplashScreen.preventAutoHideAsync();
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        if (error instanceof AniListRequestError && [400, 401, 403, 404].includes(error.status)) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex, error) => {
+        if (error instanceof AniListRequestError && error.retryAfterMs) {
+          return error.retryAfterMs;
+        }
+        return Math.min(1000 * 2 ** attemptIndex, 8000);
+      },
+    },
+  },
+});
 
 // const prefix = Linking.createURL('/');
 

@@ -25,7 +25,7 @@ import EpisodeListSheet from '~/components/details/EpisodeListSheet';
 import InfoRow from '~/components/details/InfoRow';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
-import { fetchAnimeById } from '~/services/AnimeService';
+import { fetchAniListAnimeById } from '~/services/AniListService';
 import { Anime, AnimeInfoResponse } from '~/types';
 
 export const AnimeDetails = () => {
@@ -43,8 +43,8 @@ export const AnimeDetails = () => {
     error,
     isLoading,
   } = useQuery<AnimeInfoResponse>({
-    queryKey: ['details_page', id],
-    queryFn: () => fetchAnimeById(id),
+    queryKey: ['anilist', 'details', id],
+    queryFn: () => fetchAniListAnimeById(id),
   });
 
   const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);

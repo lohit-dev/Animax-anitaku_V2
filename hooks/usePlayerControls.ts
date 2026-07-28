@@ -6,7 +6,7 @@ import { Animated, BackHandler, PanResponder } from 'react-native';
 import { usePlayerStore } from '~/app/_store/usePlayerStore';
 import { clamp } from '~/helpers/subtitles';
 
-export const usePlayerControls = (seekTo: (time: number) => void) => {
+export const usePlayerControls = (seekTo: (time: number) => void, onExit?: () => void) => {
   const router = useRouter();
 
   // Zustand selectors
@@ -22,11 +22,7 @@ export const usePlayerControls = (seekTo: (time: number) => void) => {
   const setShowControls = usePlayerStore((s) => s.setShowControls);
   const toggleControls = usePlayerStore((s) => s.toggleControls);
   const setIsFullscreen = usePlayerStore((s) => s.setIsFullscreen);
-  const setIsLocked = usePlayerStore((s) => s.setIsLocked);
   const setIsModalVisible = usePlayerStore((s) => s.setIsModalVisible);
-  const setIsScrubbing = usePlayerStore((s) => s.setIsScrubbing);
-  const setScrubPreviewTime = usePlayerStore((s) => s.setScrubPreviewTime);
-  const setCurrentTime = usePlayerStore((s) => s.setCurrentTime);
   const setFlash = usePlayerStore((s) => s.setFlash);
   const cycleResizeMode = usePlayerStore((s) => s.cycleResizeMode);
 
@@ -66,13 +62,17 @@ export const usePlayerControls = (seekTo: (time: number) => void) => {
           setIsFullscreen(false);
           return true;
         }
-        router.back();
+        if (onExit) {
+          onExit();
+        } else if (router.canGoBack()) {
+          router.back();
+        }
         return true;
       };
 
       const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => backHandler.remove();
-    }, [router, setIsModalVisible, setIsFullscreen])
+    }, [onExit, router, setIsModalVisible, setIsFullscreen])
   );
 
   // -----------------------------------------------------------------------

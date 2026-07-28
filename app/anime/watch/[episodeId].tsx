@@ -48,6 +48,7 @@ const WatchScreen = () => {
     isLoading,
     queryError,
     videoSource,
+    videoSourceKey,
     videoSourceObj,
     selectedVideoTrack,
     resizeMode,
@@ -64,6 +65,15 @@ const WatchScreen = () => {
     seekTo,
   } = useVideoPlayer(animeId, episodeId, type);
 
+  const handleExit = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace({ pathname: '/anime/[id]', params: { id: animeId } });
+  }, [animeId, router]);
+
   const {
     controlsAnim,
     sheetAnim,
@@ -72,7 +82,7 @@ const WatchScreen = () => {
     triggerFlash,
     handleCycleResizeMode,
     handleVideoTap,
-  } = usePlayerControls(seekTo);
+  } = usePlayerControls(seekTo, handleExit);
 
   const { data: episodeListData } = useEpisodeList(animeId);
   const episodes = episodeListData ?? [];
@@ -86,7 +96,6 @@ const WatchScreen = () => {
   const isMuted = usePlayerStore((s) => s.isMuted);
   const currentTime = usePlayerStore((s) => s.currentTime);
   const subtitleCues = usePlayerStore((s) => s.subtitleCues);
-  const selectedSubtitleIndex = usePlayerStore((s) => s.selectedSubtitleIndex);
   const setShowControls = usePlayerStore((s) => s.setShowControls);
   const setIsModalVisible = usePlayerStore((s) => s.setIsModalVisible);
   const selectServer = usePlayerStore((s) => s.selectServer);
@@ -198,7 +207,7 @@ const WatchScreen = () => {
         options={{
           headerShown: !isFullscreen,
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="p-2">
+            <TouchableOpacity onPress={handleExit} className="p-2">
               <ArrowLeft size={24} color={COLORS.text} />
             </TouchableOpacity>
           ),
@@ -225,12 +234,12 @@ const WatchScreen = () => {
           playerWidthRef.current = e.nativeEvent.layout.width;
         }}>
         <Video
-          key={videoSource}
+          key={videoSourceKey}
           ref={videoRef}
           controls={false}
           source={videoSourceObj}
           style={{ width: '100%', height: '100%' }}
-          paused={!isPlaying}
+          paused={!isPlaying || !isSubtitleReady}
           muted={isMuted}
           rate={1.0}
           onProgress={handleProgress}
@@ -254,9 +263,6 @@ const WatchScreen = () => {
           controlsAnim={controlsAnim}
           seekPanResponder={seekPanResponder}
           activeSubtitleCues={activeSubtitleCues}
-          validSubtitleTracks={validSubtitleTracks}
-          isSubtitleReady={isSubtitleReady}
-          onTap={handleVideoTap}
           onCycleResizeMode={handleCycleResizeMode}
           onSeekBackward={() => {
             seekTo(currentTime - 10);

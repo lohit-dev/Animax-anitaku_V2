@@ -23,7 +23,7 @@ import HomeBanner from '~/components/home/HomeBanner';
 import HomeButtons from '~/components/home/HomeButtons';
 import RowItem from '~/components/home/RowItem';
 import { hp, wp } from '~/helpers/common';
-import { fetchHomePage } from '~/services/AnimeService';
+import { fetchAniListHomePage } from '~/services/AniListService';
 import { Anime } from '~/types';
 
 const Home = () => {
@@ -33,8 +33,8 @@ const Home = () => {
     error,
     isLoading,
   } = useQuery({
-    queryKey: ['homepage'],
-    queryFn: fetchHomePage,
+    queryKey: ['anilist', 'home'],
+    queryFn: fetchAniListHomePage,
   });
 
   const [anime, setAnime] = useState<Anime[]>(HomePageData?.data?.spotlight || []);
@@ -72,7 +72,7 @@ const Home = () => {
   }, [HomePageData]);
 
   useEffect(() => {
-    if (isAutoPlay) {
+    if (isAutoPlay && anime.length > 1) {
       interval.current = setInterval(() => {
         const nextIndex = (currentIndex + 1) % anime.length;
         setCurrentIndex(nextIndex);
@@ -173,8 +173,6 @@ const Home = () => {
             initialNumToRender={10}
             maxToRenderPerBatch={20}
             keyExtractor={(_, index) => `list_item${index}`}
-            onEndReachedThreshold={0.5}
-            onEndReached={() => setAnime([...anime, ...(HomePageData?.data?.spotlight || [])])}
             renderItem={({ item, index }) => {
               return (
                 <AnimeBannerText

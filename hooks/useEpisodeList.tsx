@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { Episode } from '~/components/watch/EpisodeList';
-import { fetchAnimeEpisode } from '~/services/AnimeService';
-import type { AnikotoEpisode } from '~/types';
+import { fetchAniListEpisodes } from '~/services/AniListService';
+import type { AniListEpisode } from '~/types';
 
-const mapEpisode = (episode: AnikotoEpisode): Episode => ({
-  id: episode.slug || episode.id,
-  number: `${Number.parseInt(episode.episode, 10) || 0}`,
-  title: episode.title || `Episode ${episode.episode}`,
+const mapEpisode = (episode: AniListEpisode): Episode => ({
+  id: episode.id,
+  number: episode.number,
+  title: episode.title,
   image: undefined,
 });
 
 export const useEpisodeList = (animeId: string) =>
   useQuery<Episode[]>({
-    queryKey: ['episodes', animeId],
+    queryKey: ['anilist', 'episodes', animeId],
     queryFn: async () => {
-      const episodes = await fetchAnimeEpisode(animeId);
+      const episodes = await fetchAniListEpisodes(animeId);
       return episodes.map(mapEpisode);
     },
     enabled: !!animeId,

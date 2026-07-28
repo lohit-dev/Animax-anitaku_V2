@@ -66,6 +66,10 @@ export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' |
 
   const videoSource = primaryServer?.m3u8Url;
   const referer = primaryServer?.referer;
+  // Two server entries can point at the same m3u8 URL. Include the selected
+  // server in this identity so switching entries always reloads the native
+  // source and completes the preserved-seek handoff.
+  const videoSourceKey = `${activeServerIndex}:${videoSource ?? ''}:${referer ?? ''}`;
 
   // -----------------------------------------------------------------------
   // Subtitle tracks
@@ -269,6 +273,7 @@ export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' |
     isLoading,
     queryError,
     videoSource,
+    videoSourceKey,
     videoSourceObj,
     selectedVideoTrack,
     resizeMode,

@@ -1,4 +1,8 @@
-export type AnikotoHomeSpotlightItem = {
+// ---------------------------------------------------------------------------
+// AniList catalogue models
+// ---------------------------------------------------------------------------
+
+export type Anime = {
   title: string;
   slug: string;
   image: string;
@@ -8,55 +12,38 @@ export type AnikotoHomeSpotlightItem = {
   date?: string;
   sub?: boolean;
   dub?: boolean;
-};
-
-export type AnikotoHomeListItem = {
-  title: string;
-  slug: string;
-  image: string;
   type?: string;
   episode?: string;
   episodeNumber?: string;
-  sub?: boolean;
-  dub?: boolean;
-  episodeSlug?: string;
+  languages?: string[];
+  genres?: string[];
+  rank?: number;
+  aniListId?: number;
+  malId?: number | null;
 };
 
-export type AnikotoHomeResponse = {
-  success: boolean;
+export type AniListHomeResponse = {
   data: {
-    spotlight: AnikotoHomeSpotlightItem[];
-    recentUpdates: AnikotoHomeListItem[];
-    upcoming: AnikotoHomeListItem[];
+    spotlight: Anime[];
+    recentUpdates: Anime[];
+    upcoming: Anime[];
     topTables: {
-      newReleases: AnikotoHomeListItem[];
-      newlyAdded: AnikotoHomeListItem[];
-      justCompleted: AnikotoHomeListItem[];
+      newReleases: Anime[];
+      newlyAdded: Anime[];
+      justCompleted: Anime[];
     };
   };
 };
 
-export type AnikotoSearchItem = {
-  title: string;
-  slug: string;
-  image: string;
-  type?: string;
-  score?: string;
-  genres?: string[];
-  languages?: string[];
-  episode?: string;
-};
-
-export type AnikotoSearchResponse = {
-  results: AnikotoSearchItem[];
+export type AniListSearchResponse = {
+  results: Anime[];
   pagination: {
     currentPage: number;
     hasNextPage: boolean;
-    hasPrevPage: boolean;
   };
 };
 
-export type AnikotoDetailsResponse = {
+export type AniListAnimeDetails = {
   id: string;
   title: string;
   alternateTitles: string[];
@@ -74,20 +61,11 @@ export type AnikotoDetailsResponse = {
   malId: number | null;
 };
 
-export type AnikotoEpisode = {
+export type AniListEpisode = {
   id: string;
-  episode: string;
-  slug: string;
-  malId: string;
-  timestamp: string;
-  sub: boolean;
-  dub: boolean;
-  serversId: string;
+  number: string;
   title: string;
-  url: string;
 };
-
-export type AnikotoEpisodesResponse = AnikotoEpisode[];
 
 export type SkipTime = {
   start: number;
@@ -228,17 +206,8 @@ export type SearchParams = {
   filters?: SearchFilters;
 };
 
-export type Anime = Partial<AnikotoHomeSpotlightItem> &
-  Partial<AnikotoHomeListItem> &
-  Partial<AnikotoSearchItem> & {
-    title: string;
-    slug: string;
-    image: string;
-    rank?: number;
-  };
-
-export type SearchResponse = AnikotoSearchResponse;
-export type AnimeInfoResponse = AnikotoDetailsResponse;
+export type SearchResponse = AniListSearchResponse;
+export type AnimeInfoResponse = AniListAnimeDetails;
 export type CharacterVoiceActor = any;
 
 // ---------------------------------------------------------------------------

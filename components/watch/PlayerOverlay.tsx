@@ -14,7 +14,7 @@ import TextTicker from 'react-native-text-ticker';
 import { usePlayerStore, RESIZE_MODES } from '~/app/_store/usePlayerStore';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
 import { clamp, formatTimecode } from '~/helpers/subtitles';
-import { SubtitleCue, SubtitleTrack } from '~/types';
+import { SubtitleCue } from '~/types';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -26,9 +26,6 @@ type PlayerOverlayProps = {
   controlsAnim: Animated.Value;
   seekPanResponder: any;
   activeSubtitleCues: SubtitleCue[];
-  validSubtitleTracks: SubtitleTrack[];
-  isSubtitleReady: boolean;
-  onTap: (event: any) => void;
   onCycleResizeMode: () => void;
   onSeekBackward: () => void;
   onSeekForward: () => void;
@@ -41,9 +38,6 @@ const PlayerOverlay = ({
   controlsAnim,
   seekPanResponder,
   activeSubtitleCues,
-  validSubtitleTracks,
-  isSubtitleReady,
-  onTap,
   onCycleResizeMode,
   onSeekBackward,
   onSeekForward,
@@ -62,8 +56,6 @@ const PlayerOverlay = ({
   const seekBarWidth = usePlayerStore((s) => s.seekBarWidth);
   const resizeModeIndex = usePlayerStore((s) => s.resizeModeIndex);
   const flash = usePlayerStore((s) => s.flash);
-  const selectedSubtitleIndex = usePlayerStore((s) => s.selectedSubtitleIndex);
-  const subtitleStatus = usePlayerStore((s) => s.subtitleStatus);
   const isBuffering = usePlayerStore((s) => s.isBuffering);
 
   // Actions
@@ -80,12 +72,6 @@ const PlayerOverlay = ({
   const bottomCaptionOffset = showControls && !isLocked ? (isFullscreen ? 108 : 78) : 22;
   const topCaptionOffset = showControls && !isLocked ? (isFullscreen ? 64 : 44) : 14;
   const resizeMode = RESIZE_MODES[resizeModeIndex];
-
-  const subtitleLabel = isSubtitleReady
-    ? ((selectedSubtitleIndex !== null
-        ? validSubtitleTracks[selectedSubtitleIndex]?.title
-        : null) ?? 'Subtitles off')
-    : subtitleStatus;
 
   // Responsive sizing
   const topBtnSize = isFullscreen ? 42 : 36;

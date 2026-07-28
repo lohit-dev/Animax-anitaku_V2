@@ -41,7 +41,7 @@ const RowItem = ({
             className="flex items-center justify-center"
             style={styles.roundedImage}>
             <View className="absolute bottom-0 left-0 right-0 top-0 z-auto bg-black opacity-50" />
-            <Text className="font-salsa text-5xl text-lime-400">{item.rank || index + 1}</Text>
+            <Text className="font-salsa text-5xl text-lime-400">{index + 1}</Text>
           </ImageBackground>
         </View>
       </AnimatedTouchableOpacity>

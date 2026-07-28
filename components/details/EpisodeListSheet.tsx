@@ -1,12 +1,11 @@
 import { BottomSheetModal, BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Play, SearchNormal1 } from 'iconsax-react-native';
 import { useCallback, useMemo, useState, RefObject } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { fetchAnimeEpisode } from '~/services/AnimeService';
+import { useEpisodeList } from '~/hooks/useEpisodeList';
 
 type Episode = {
   episodeId: string;
@@ -45,27 +44,17 @@ const EpisodeListSheet = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  const {
-    data: episodeData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['episodes', animeId, type],
-    queryFn: () => fetchAnimeEpisode(animeId),
-    enabled: !!animeId,
-  });
+  const { data: episodeData, isLoading, error } = useEpisodeList(animeId);
 
   const episodes: Episode[] = useMemo(() => {
     if (!episodeData) return [];
-    return episodeData
-      .filter((ep: any) => (type === 'dub' ? ep.dub : ep.sub))
-      .map((ep: any) => ({
-        episodeId: ep.slug || ep.id,
-        number: parseFloat(ep.episode) || 0,
-        title: ep.title || `Episode ${ep.episode}`,
-        isFiller: false,
-      }));
-  }, [episodeData, type]);
+    return episodeData.map((ep) => ({
+      episodeId: ep.id,
+      number: parseFloat(ep.number) || 0,
+      title: ep.title || `Episode ${ep.number}`,
+      isFiller: false,
+    }));
+  }, [episodeData]);
 
   const filteredAndSortedEpisodes = useMemo(() => {
     let result = [...episodes];
