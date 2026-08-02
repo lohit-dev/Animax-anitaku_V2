@@ -5,7 +5,7 @@ import { hp, wp } from '~/helpers/common';
 
 const Gradient = () => {
   return (
-    <View style={[styles.gradient, { width: wp(100), height: hp(56.5) }]}>
+    <View style={[styles.gradient, { width: wp(100), height: hp(56.3) }]}>
       <LinearGradient colors={['rgba(15,16,20,1)', 'rgba(15,16,20,0)']} style={styles.topFade} />
       <LinearGradient colors={['rgba(16,17,21,0)', 'rgba(16,17,21,1)']} style={styles.bottomFade} />
     </View>
