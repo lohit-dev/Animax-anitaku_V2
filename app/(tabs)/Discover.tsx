@@ -10,7 +10,11 @@ import SearchInput from '~/components/search/SearchInput';
 import AnimeCard from '~/components/shared/AnimeCard';
 import { wp } from '~/helpers/common';
 import { useDebounce } from '~/hooks/useDebounce';
-import { fetchAniListDubbed, fetchAniListSearch, fetchAniListSubbed } from '~/services/AniListService';
+import {
+  fetchAniListDubbed,
+  fetchAniListSearch,
+  fetchAniListSubbed,
+} from '~/services/AniListService';
 import { Anime, SearchResponse } from '~/types';
 
 const Discover = () => {
@@ -94,12 +98,8 @@ const Discover = () => {
               />
             </View>
           )}
-          {subbedAnime.length > 0 && (
-            <RowItem data={subbedAnime} name="Subbed Anime" seeAll />
-          )}
-          {dubbedAnime.length > 0 && (
-            <RowItem data={dubbedAnime} name="Dubbed Anime" seeAll />
-          )}
+          {subbedAnime.length > 0 && <RowItem data={subbedAnime} name="Subbed Anime" seeAll />}
+          {dubbedAnime.length > 0 && <RowItem data={dubbedAnime} name="Dubbed Anime" seeAll />}
         </ScrollView>
       )}
 
