@@ -4,77 +4,85 @@ import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } f
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
 import { getFormattedTitle } from '~/helpers/TextFormat';
-import { hp, wp } from '~/helpers/common';
+import { wp } from '~/helpers/common';
 import { CharacterVoiceActor } from '~/types';
+
+// Created once outside the component so it's not re-created on every render
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 type CharacterVoiceActorRowProps = {
   data: CharacterVoiceActor[];
   className?: string;
   seeAll?: boolean;
-  rounded: boolean;
+  rounded?: boolean;
+};
+
+type RoundedRowItemProps = {
+  item: CharacterVoiceActor;
+};
+
+const RoundedRowItem = ({ item }: RoundedRowItemProps) => {
+  // item.image is the character image — skip if missing
+  if (!item?.image) {
+    return null;
+  }
+
+  return (
+    <View className="flex items-center justify-center">
+      {/* Character */}
+      <AnimatedTouchableOpacity
+        entering={FadeInRight.duration(500)}
+        className="flex items-center justify-center pr-2 pt-2">
+        <View className="overflow-hidden rounded-full">
+          <ImageBackground
+            source={{ uri: item.image }}
+            className="flex items-center justify-center"
+            style={styles.roundedImage}
+          />
+        </View>
+        <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
+          {getFormattedTitle(item.name)}
+        </Text>
+        <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
+          {item.role}
+        </Text>
+      </AnimatedTouchableOpacity>
+
+      {/* Connector */}
+      {item.voiceActor ? <ArrowSwapVertical size="28" color="#a3e635" /> : null}
+
+      {/* Voice Actor */}
+      {item.voiceActor ? (
+        <AnimatedTouchableOpacity
+          entering={FadeInRight.duration(500)}
+          className="flex items-center justify-center pr-2 pt-2">
+          <View className="overflow-hidden rounded-full">
+            <ImageBackground
+              source={{ uri: item.voiceActor.image }}
+              className="flex items-center justify-center"
+              style={styles.roundedImage}
+            />
+          </View>
+          <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
+            {getFormattedTitle(item.voiceActor.name)}
+          </Text>
+          <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
+            {item.voiceActor.language || 'Voice Actor'}
+          </Text>
+        </AnimatedTouchableOpacity>
+      ) : null}
+    </View>
+  );
 };
 
 export const CharacterVoiceActorRow = ({
   className,
   data = [],
   seeAll,
-  rounded,
 }: CharacterVoiceActorRowProps) => {
   if (!Array.isArray(data) || data.length === 0) {
-    console.log('No character data available');
     return null;
   }
-
-  const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
-  type RoundedRowItemProps = {
-    item: CharacterVoiceActor;
-  };
-
-  const RoundedRowItem = ({ item }: RoundedRowItemProps) => {
-    if (!item?.character?.poster) {
-      return null;
-    }
-
-    return (
-      <View className="flex items-center justify-center">
-        <AnimatedTouchableOpacity
-          entering={FadeInRight.duration(500)}
-          className="flex items-center justify-center pr-2 pt-2">
-          <View className="overflow-hidden rounded-full">
-            <ImageBackground
-              source={{ uri: item.character.poster }}
-              className="flex items-center justify-center"
-              style={styles.roundedImage}
-            />
-          </View>
-          <Text className="font-salsa p-1 text-base text-white">
-            {getFormattedTitle(item.character.name)}
-          </Text>
-          <Text className="font-salsa p-1 text-base text-lime-400">{item.character.cast}</Text>
-        </AnimatedTouchableOpacity>
-
-        {/* A line to like map the character to the voice actor */}
-        <ArrowSwapVertical size="28" color="#a3e635" />
-
-        <AnimatedTouchableOpacity
-          entering={FadeInRight.duration(500)}
-          className="flex items-center justify-center pr-2 pt-2">
-          <View className="overflow-hidden rounded-full">
-            <ImageBackground
-              source={{ uri: item.voiceActor.poster }}
-              className="flex items-center justify-center"
-              style={styles.roundedImage}
-            />
-          </View>
-          <Text className="font-salsa p-1 text-base text-white">
-            {getFormattedTitle(item.voiceActor.name)}
-          </Text>
-          <Text className="font-salsa p-1 text-base text-lime-400">{item.voiceActor.cast}</Text>
-        </AnimatedTouchableOpacity>
-      </View>
-    );
-  };
 
   return (
     <View className={className}>
@@ -96,7 +104,7 @@ export const CharacterVoiceActorRow = ({
         contentContainerClassName="px-2"
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => <RoundedRowItem item={item} />}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         initialNumToRender={10}
         maxToRenderPerBatch={20}
       />
@@ -107,10 +115,6 @@ export const CharacterVoiceActorRow = ({
 export default CharacterVoiceActorRow;
 
 const styles = StyleSheet.create({
-  Image: {
-    width: wp(28),
-    height: hp(19),
-  },
   roundedImage: {
     width: wp(20),
     height: wp(20),

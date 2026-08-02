@@ -48,6 +48,7 @@ export type AniListAnimeDetails = {
   title: string;
   alternateTitles: string[];
   image: string;
+  bannerImage?: string;
   synopsis: string;
   rating: string;
   quality: string;
@@ -61,10 +62,24 @@ export type AniListAnimeDetails = {
   malId: number | null;
 };
 
-export type AniListEpisode = {
+export type CharacterVoiceActor = {
   id: string;
-  number: string;
-  title: string;
+  name: string;
+  image: string;
+  role: string;
+  voiceActor?: {
+    id: string;
+    name: string;
+    image: string;
+    language?: string;
+  };
+};
+
+export type AniListAnimeExtras = {
+  bannerImage?: string;
+  studios: string[];
+  cast: CharacterVoiceActor[];
+  recommendations: Anime[];
 };
 
 export type SkipTime = {
@@ -91,6 +106,21 @@ export type Server = {
   subtitles: Subtitle[];
   error?: string;
 };
+
+export type AnikotoEpisode = {
+  id: string;
+  episode: string;
+  slug: string;
+  malId: string;
+  timestamp: string;
+  sub: boolean;
+  dub: boolean;
+  serversId: string;
+  title: string;
+  url: string;
+};
+
+export type AnikotoEpisodesResponse = AnikotoEpisode[];
 
 export type AnikotoStreamResponse = {
   success: boolean;
@@ -208,7 +238,6 @@ export type SearchParams = {
 
 export type SearchResponse = AniListSearchResponse;
 export type AnimeInfoResponse = AniListAnimeDetails;
-export type CharacterVoiceActor = any;
 
 // ---------------------------------------------------------------------------
 // Video Player Types

@@ -2,41 +2,68 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft2, DocumentDownload, Heart, Share } from 'iconsax-react-native';
+import { ArrowLeft2, Heart, Share } from 'iconsax-react-native';
 import LottieView from 'lottie-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ImageBackground,
+  BackHandler,
+  Image,
   ScrollView,
+  Share as RNShare,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
-  Share as RNShare,
-  BackHandler,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-notifications';
 
 import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
-// import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
+import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
 import EpisodeListSheet from '~/components/details/EpisodeListSheet';
-import InfoRow from '~/components/details/InfoRow';
+import RowItem from '~/components/home/RowItem';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
-import { fetchAniListAnimeById } from '~/services/AniListService';
-import { Anime, AnimeInfoResponse } from '~/types';
+import { fetchAniListAnimeById, fetchAniListAnimeExtras } from '~/services/AniListService';
+import { AniListAnimeExtras, Anime, AnimeInfoResponse } from '~/types';
 
-export const AnimeDetails = () => {
+type DetailLineProps = {
+  label: string;
+  value?: string | null;
+  accent?: boolean;
+};
+
+const DetailLine = ({ label, value, accent = false }: DetailLineProps) => (
+  <View style={styles.detailLine}>
+    <Text style={styles.detailLabel}>{label}</Text>
+    <Text numberOfLines={2} style={[styles.detailValue, accent && styles.detailValueAccent]}>
+      {value || '—'}
+    </Text>
+  </View>
+);
+
+const AnimeDetails = () => {
   const nav = useRouter();
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const { width } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const toast = useToast();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [selectedType, setSelectedType] = useState<'sub' | 'dub'>('sub');
+  const [isEpisodeSheetOpen, setIsEpisodeSheetOpen] = useState(false);
+
   const savedAnimes = useSavedAnimesStore((s) => s.animes);
   const addAnime = useSavedAnimesStore((s) => s.addAnime);
   const removeAnime = useSavedAnimesStore((s) => s.removeAnime);
-  const [selectedType, setSelectedType] = useState<'sub' | 'dub'>('sub');
-  const [isEpisodeSheetOpen, setIsEpisodeSheetOpen] = useState(false);
 
   const {
     data: animeData,
@@ -47,18 +74,44 @@ export const AnimeDetails = () => {
     queryFn: () => fetchAniListAnimeById(id),
   });
 
-  const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
-
-  const titleLength = animeData?.title?.length;
-  const titleStyle = titleLength && titleLength > 12 ? 'text-3xl' : 'text-4xl';
-  const titleStyleFirstLetter = titleLength && titleLength > 12 ? 'text-4xl' : 'text-5xl';
-
-  const toast = useToast();
+  const { data: animeExtras, isLoading: isExtrasLoading } = useQuery<AniListAnimeExtras>({
+    queryKey: ['anilist', 'details-extras', animeData?.id],
+    queryFn: () => fetchAniListAnimeExtras(animeData!.id),
+    enabled: Boolean(animeData?.id),
+    staleTime: 15 * 60 * 1000,
+  });
 
   const [isFav, setIsFav] = useState(() => savedAnimes.some((anime) => anime.slug === id));
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const isUpcoming = animeData?.status?.toLowerCase().includes('not yet aired');
+  const canWatch = !isUpcoming;
+  const bannerImage = animeData?.bannerImage || animeExtras?.bannerImage;
+  const heroPan = useSharedValue(0);
+  const heroPanDistance = width * 0.23;
+  const synopsis = animeData?.synopsis?.trim() || 'No synopsis is available for this title yet.';
+  const hasLongSynopsis = synopsis.length > 230;
+  const displayedSynopsis =
+    showFullDescription || !hasLongSynopsis ? synopsis : `${synopsis.slice(0, 230).trimEnd()}…`;
 
-  const handleBack = React.useCallback(() => {
+  useEffect(() => {
+    heroPan.value = 0;
+
+    if (!bannerImage) return;
+
+    heroPan.value = withRepeat(
+      withTiming(-heroPanDistance, {
+        duration: 14_000,
+        easing: Easing.inOut(Easing.quad),
+      }),
+      -1,
+      true
+    );
+  }, [bannerImage, heroPan, heroPanDistance]);
+
+  const heroPanStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: heroPan.value }],
+  }));
+
+  const handleBack = useCallback(() => {
     if (isEpisodeSheetOpen) {
       bottomSheetRef.current?.dismiss();
       return;
@@ -72,33 +125,24 @@ export const AnimeDetails = () => {
     nav.replace('/(tabs)/Home');
   }, [isEpisodeSheetOpen, nav]);
 
-  const openEpisodeSheet = React.useCallback((type: 'sub' | 'dub') => {
+  const openEpisodeSheet = useCallback((type: 'sub' | 'dub') => {
     setSelectedType(type);
     setIsEpisodeSheetOpen(true);
     requestAnimationFrame(() => bottomSheetRef.current?.present());
   }, []);
 
   const handleShare = async () => {
+    if (!animeData) return;
+
     try {
-      const deepLink = `animax://anime/${id}`;
-      const webFallback = 'https://github.com/lohit-dev/Animax-anitaku_V2';
-
-      const message =
-        `🌟 ${animeData?.title.toUpperCase()} 🌟\n\n` +
-        `${animeData?.alternateTitles?.[0] || 'Unknown'}\n` +
-        `Rating: ${animeData?.rating}\n\n` +
-        `📺 Watch now on Animax!\n` +
-        `- Anime to the max! 🚀\n\n` +
-        `📱 Open in Animax: ${deepLink}\n` +
-        `🌐 Or visit: ${webFallback}`;
-
+      const deepLink = `animax://anime/${animeData.id}`;
       await RNShare.share({
-        message,
-        title: `Share ${animeData?.title}`,
+        title: `Share ${animeData.title}`,
+        message: `Watch ${animeData.title} on Animax.\n${deepLink}`,
         url: deepLink,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (shareError) {
+      console.error(shareError);
     }
   };
 
@@ -106,7 +150,7 @@ export const AnimeDetails = () => {
     if (!animeData) return;
 
     if (isFav) {
-      removeAnime(id as string);
+      removeAnime(animeData.id);
     } else {
       const basicAnime: Anime = {
         slug: animeData.id,
@@ -118,19 +162,17 @@ export const AnimeDetails = () => {
       };
       addAnime(basicAnime);
     }
-    setIsFav(!isFav);
+
+    setIsFav((current) => !current);
     toast.show(isFav ? 'Removed from library' : 'Added to library', {
       type: 'success',
       placement: 'bottom',
       duration: 2000,
     });
-  }, [animeData, id, isFav, addAnime, removeAnime, toast]);
+  }, [addAnime, animeData, isFav, removeAnime, toast]);
 
-  // console.log(animeData?.info.charactersVoiceActors);
-
-  // Add useEffect to handle back button press
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
         handleBack();
         return true;
@@ -155,16 +197,19 @@ export const AnimeDetails = () => {
 
   if (error) {
     return (
-      <View className="flex flex-1 items-center justify-center bg-neutral-950">
+      <View className="flex flex-1 items-center justify-center bg-neutral-950 px-8">
         <LottieView
           source={require('~/assets/lottie/Error.json')}
           autoPlay
           loop
-          style={{ height: hp(40), width: wp(70) }}
+          style={{ height: hp(34), width: wp(70) }}
         />
-        <Text className="mt-3 text-2xl text-white">
+        <Text className="mt-3 text-center text-xl text-white">
           {error instanceof Error ? error.message : 'An error occurred'}
         </Text>
+        <TouchableOpacity onPress={handleBack} style={styles.errorBackButton}>
+          <Text style={styles.errorBackText}>Back to discover</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -178,210 +223,533 @@ export const AnimeDetails = () => {
   }
 
   return (
-    <ScrollView className="flex-1 bg-neutral-950">
-      <AnimatedImageBackground
-        // @ts-ignore
-        sharedTransitionTag="image"
-        source={{ uri: animeData.image }}
-        resizeMode="cover"
-        style={styles.image}>
-        <LinearGradient
-          style={StyleSheet.absoluteFill}
-          colors={[
-            'rgba(0,0,0,0.10)',
-            'rgba(0,0,0,0.20)',
-            'rgba(11,11,11,0.88)',
-            'rgba(11,11,11,1)',
-          ]}
-          locations={[0, 0.45, 0.82, 1]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}>
-          <View style={styles.heroContent}>
-            <SafeAreaView className="flex flex-1">
-              <View className="flex-row items-center justify-between px-3">
+    <View style={styles.screen}>
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          {bannerImage ? (
+            <Animated.Image
+              fadeDuration={0}
+              resizeMode="cover"
+              source={{ uri: bannerImage }}
+              style={[styles.heroImage, { width: width + heroPanDistance }, heroPanStyle]}
+            />
+          ) : null}
+          <LinearGradient
+            colors={['rgba(4, 5, 4, 0.12)', 'rgba(4, 5, 4, 0.4)', '#0a0a0a']}
+            locations={[0, 0.42, 1]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+
+          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+            <View style={styles.topBar}>
+              <TouchableOpacity
+                accessibilityLabel="Go back"
+                hitSlop={12}
+                onPress={handleBack}
+                style={styles.topBarButton}>
+                <ArrowLeft2 color="#FFFFFF" size={24} strokeWidth={2.5} />
+              </TouchableOpacity>
+
+              <View style={styles.topBarActions}>
                 <TouchableOpacity
-                  accessibilityLabel="Go back"
-                  className="rounded-xl bg-lime-500 p-1"
-                  hitSlop={12}
-                  onPress={handleBack}
-                  style={styles.headerBackButton}>
-                  <ArrowLeft2 size={26} strokeWidth={2.5} color="#FFF" />
+                  accessibilityLabel="Share anime"
+                  hitSlop={10}
+                  onPress={handleShare}
+                  style={styles.topBarButton}>
+                  <Share color="#FFFFFF" size={22} strokeWidth={2.2} variant="Linear" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleAddToLibrary}>
+                <TouchableOpacity
+                  accessibilityLabel={isFav ? 'Remove from library' : 'Add to library'}
+                  hitSlop={10}
+                  onPress={handleAddToLibrary}
+                  style={[styles.topBarButton, isFav && styles.topBarButtonActive]}>
                   <Heart
-                    size={35}
-                    strokeWidth={2.5}
-                    color={isFav ? 'red' : 'white'}
-                    variant="Bold"
+                    color="#FFFFFF"
+                    size={22}
+                    strokeWidth={2.2}
+                    variant={isFav ? 'Bold' : 'Linear'}
                   />
                 </TouchableOpacity>
               </View>
-            </SafeAreaView>
+            </View>
+          </SafeAreaView>
 
-            <View className="flex-1 items-center justify-end">
-              <Text
-                ellipsizeMode="tail"
-                numberOfLines={2}
-                className={`font-salsa pt-2 text-center tracking-wider text-white ${titleStyle}`}>
-                {getFormattedTitle(animeData.title, titleStyleFirstLetter)}
+          <View style={styles.heroFooter}>
+            <View style={styles.heroPill}>
+              <Text style={styles.heroPillText}>
+                {isUpcoming ? 'COMING SOON' : animeData.type || 'ANIME'}
               </Text>
             </View>
-
-            <View className="flex-row items-center justify-center">
-              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
-                {animeData.status} •
-              </Text>
-              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
-                {' '}
-                {animeData.released} •
-              </Text>
-              <Text className="font-salsa text-center text-base font-semibold text-neutral-400">
-                {' '}
-                {animeData.duration}
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-      </AnimatedImageBackground>
-
-      <View className="-mt-4 px-6">
-        <View className="flex flex-row items-center justify-between rounded-xl">
-          <Text className="font-salsa text-3xl tracking-wider text-white">
-            {getFormattedTitle('Description', 'text-4xl font-semibold')}
-          </Text>
-          <View className="flex flex-row items-center gap-5">
-            <TouchableOpacity onPress={handleShare}>
-              <Share size="28" color="#a3e635" variant="Bulk" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => {}}>
-              <DocumentDownload size="28" color="#a3e635" variant="TwoTone" />
-            </TouchableOpacity>
           </View>
         </View>
 
-        <Text className="font-salsa pt-3 text-base text-neutral-300/85">
-          {showFullDescription ? animeData.synopsis : `${animeData.synopsis.substring(0, 155)}...`}
-          {animeData.synopsis.length > 155 && (
-            <Text
-              className="text-lg text-lime-300"
-              onPress={() => setShowFullDescription(!showFullDescription)}>
-              {showFullDescription ? ' Read Less' : ' Read More'}
+        <Animated.View entering={FadeInDown.duration(400).springify()} style={styles.titleBlock}>
+          <Image source={{ uri: animeData.image }} style={styles.poster} />
+          <View style={styles.titleCopy}>
+            <Text style={styles.kicker} numberOfLines={1}>
+              {animeData.released || 'Release date unavailable'}
             </Text>
-          )}
-        </Text>
-        {/* Episodes Section */}
-        <View className="mt-8">
-          <Text className="font-salsa text-3xl tracking-wider text-white">
-            {getFormattedTitle('Episodes', 'text-4xl font-semibold')}
-          </Text>
-          <View className="mt-4 flex-row gap-4">
-            <TouchableOpacity
-              testID="detail-sub-button"
-              className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-              onPress={() => {
-                openEpisodeSheet('sub');
-              }}>
-              <Text className="font-salsa text-lg text-white">Sub</Text>
-            </TouchableOpacity>
+            <Text numberOfLines={3} style={styles.title}>
+              {getFormattedTitle(animeData.title)}
+            </Text>
+            <Text numberOfLines={1} style={styles.alternateTitle}>
+              {animeData.alternateTitles?.[0] || animeData.type || 'Anime'}
+            </Text>
+          </View>
+        </Animated.View>
 
+        <Animated.View
+          entering={FadeInDown.delay(80).duration(400).springify()}
+          style={styles.content}>
+          <View style={styles.quickFacts}>
+            <View style={styles.quickFact}>
+              <Text style={styles.quickFactValue}>
+                {animeData.malRating || animeData.rating || '—'}
+              </Text>
+              <Text style={styles.quickFactLabel}>SCORE</Text>
+            </View>
+            <View style={styles.quickFactDivider} />
+            <View style={styles.quickFact}>
+              <Text numberOfLines={1} style={styles.quickFactValue}>
+                {animeData.duration || '—'}
+              </Text>
+              <Text style={styles.quickFactLabel}>DURATION</Text>
+            </View>
+            <View style={styles.quickFactDivider} />
+            <View style={styles.quickFact}>
+              <Text numberOfLines={1} style={styles.quickFactValue}>
+                {animeData.type || 'TV'}
+              </Text>
+              <Text style={styles.quickFactLabel}>FORMAT</Text>
+            </View>
+          </View>
+
+          <View style={styles.actionRow}>
             <TouchableOpacity
-              testID="detail-dub-button"
-              className="flex-1 items-center rounded-xl bg-lime-500/20 p-3"
-              onPress={() => {
-                openEpisodeSheet('dub');
-              }}>
-              <Text className="font-salsa text-lg text-white">Dub</Text>
+              disabled={!canWatch}
+              onPress={() => openEpisodeSheet('sub')}
+              style={[styles.primaryAction, !canWatch && styles.primaryActionDisabled]}
+              testID="detail-sub-button">
+              <Text style={styles.primaryActionText}>
+                {canWatch ? 'Watch subbed' : 'Coming soon'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              disabled={!canWatch}
+              onPress={() => openEpisodeSheet('dub')}
+              style={[styles.secondaryAction, !canWatch && styles.secondaryActionDisabled]}
+              testID="detail-dub-button">
+              <Text style={styles.secondaryActionText}>Dub</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Episode List Sheet */}
-        <EpisodeListSheet
-          animeId={id}
-          animeTitle={animeData.title}
-          animeImage={animeData.image}
-          type={selectedType}
-          bottomSheetRef={bottomSheetRef as React.RefObject<BottomSheetModal>}
-          onEpisodePress={(episodeId: string) => {
-            console.log(`Playing ${selectedType} episode ${episodeId}`);
-          }}
-          onDismiss={() => setIsEpisodeSheetOpen(false)}
-          enablePanDownToClose
-          enableBackdropPress
-        />
+          {!canWatch ? (
+            <Text style={styles.upcomingNotice}>
+              Episodes will appear here once this title starts airing.
+            </Text>
+          ) : null}
 
-        {/* More Info Section */}
-        <View className="mb-6 mt-8">
-          <Text className="font-salsa text-3xl tracking-wider text-white">
-            {getFormattedTitle('More Info', 'text-4xl font-semibold')}
-          </Text>
-          <View
-            className="mt-4 space-y-4 rounded-3xl bg-neutral-900/60 p-5"
-            style={{ width: wp(90) }}>
-            <InfoRow
-              label="Alternate Title"
-              value={animeData.alternateTitles?.[0] || 'N/A'}
-              icon="translate"
-              valueStyle="text-lime-400"
-              containerStyle="flex-1"
-              numberOfLines={2}
-            />
-            <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow
-              label="Premiered"
-              value={animeData.released}
-              icon="calendar"
-              valueStyle="text-white"
-            />
-            <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow
-              label="MAL Score"
-              value={animeData.malRating || 'N/A'}
-              icon="star"
-              valueStyle="text-lime-400"
-            />
-            <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow
-              label="Studios"
-              value="N/A"
-              icon="video"
-              valueStyle="text-white"
-              numberOfLines={1}
-            />
-            <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow
-              label="Genres"
-              value={animeData.genres?.join(' • ') || 'N/A'}
-              icon="tag"
-              valueStyle="text-lime-400"
-              numberOfLines={2}
-            />
-            <View className="h-[1px] w-full bg-neutral-800" />
-            <InfoRow label="Status" value={animeData.status} icon="info" valueStyle="text-white" />
+          <View style={styles.section}>
+            <View style={styles.sectionHeading}>
+              <Text style={styles.sectionTitle}>{getFormattedTitle('The story')}</Text>
+              <TouchableOpacity accessibilityLabel="Share anime" hitSlop={10} onPress={handleShare}>
+                <Share color="#bef264" size={22} strokeWidth={2} variant="Linear" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.synopsis}>{displayedSynopsis}</Text>
+            {hasLongSynopsis ? (
+              <TouchableOpacity
+                hitSlop={8}
+                onPress={() => setShowFullDescription((current) => !current)}>
+                <Text style={styles.readMore}>
+                  {showFullDescription ? 'Show less' : 'Read full story'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-        </View>
-      </View>
-    </ScrollView>
+
+          <View style={styles.infoPanel}>
+            <DetailLine label="Premiered" value={animeData.released} />
+            <DetailLine
+              label="Studio"
+              value={
+                animeExtras?.studios.length
+                  ? animeExtras.studios.join(' • ')
+                  : isExtrasLoading
+                    ? 'Loading…'
+                    : undefined
+              }
+            />
+            <DetailLine label="Genres" value={animeData.genres?.join(' • ')} accent />
+            <DetailLine label="Status" value={animeData.status} />
+          </View>
+
+          {animeExtras?.cast.length ? (
+            <CharacterVoiceActorRow data={animeExtras.cast} className="mt-6" seeAll />
+          ) : isExtrasLoading ? (
+            <View style={styles.extrasLoading}>
+              <LottieView
+                source={require('~/assets/lottie/loading.json')}
+                autoPlay
+                loop
+                style={{ height: hp(9), width: wp(18) }}
+              />
+            </View>
+          ) : null}
+
+          {animeExtras?.recommendations.length ? (
+            <RowItem
+              className="-mx-4 mt-1"
+              data={animeExtras.recommendations}
+              name="You Might Also Like"
+              seeAll
+            />
+          ) : null}
+        </Animated.View>
+      </ScrollView>
+
+      <EpisodeListSheet
+        animeId={animeData.id}
+        animeImage={animeData.image}
+        animeTitle={animeData.title}
+        bottomSheetRef={bottomSheetRef as React.RefObject<BottomSheetModal>}
+        enableBackdropPress
+        enablePanDownToClose
+        onDismiss={() => setIsEpisodeSheetOpen(false)}
+        onEpisodePress={(episodeId: string) =>
+          nav.push({
+            pathname: '/anime/watch/[episodeId]',
+            params: {
+              episodeId,
+              animeId: animeData.id,
+              type: selectedType,
+              animeTitle: animeData.title,
+              animeImage: animeData.image,
+            },
+          })
+        }
+        type={selectedType}
+      />
+    </View>
   );
 };
 
 export default AnimeDetails;
 
 const styles = StyleSheet.create({
-  headerBackButton: {
-    elevation: 2,
-    zIndex: 2,
-  },
-  heroContent: {
+  screen: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 32,
-    paddingBottom: 48,
+    backgroundColor: '#0a0a0a',
   },
-  image: {
-    resizeMode: 'stretch',
-    width: wp(100),
-    height: hp(63),
+  scrollContent: {
+    paddingBottom: hp(7),
+  },
+  hero: {
+    height: hp(48),
+    minHeight: 390,
+    overflow: 'hidden',
+    backgroundColor: '#10110f',
+  },
+  heroImage: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+  },
+  heroSafeArea: {
+    flex: 1,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  topBarActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  topBarButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 45,
+    height: 45,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 23,
+    backgroundColor: 'rgba(9, 10, 9, 0.55)',
+  },
+  topBarButtonActive: {
+    borderColor: 'rgba(190,242,100,0.65)',
+    backgroundColor: '#65a30d',
+  },
+  heroFooter: {
+    position: 'absolute',
+    right: 24,
+    bottom: 31,
+    left: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  heroPill: {
+    borderRadius: 999,
+    backgroundColor: '#bef264',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  heroPillText: {
+    color: '#182008',
+    fontFamily: 'Salsa',
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  heroStatus: {
+    flexShrink: 1,
+    color: 'rgba(255,255,255,0.78)',
+    fontFamily: 'Salsa',
+    fontSize: 13,
+  },
+  titleBlock: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: -71,
+    marginHorizontal: 20,
+    alignItems: 'flex-end',
+  },
+  poster: {
+    width: wp(27),
+    height: hp(20),
+    minHeight: 156,
+    borderRadius: 17,
+    backgroundColor: '#191919',
+  },
+  titleCopy: {
+    flex: 1,
+    paddingBottom: 3,
+  },
+  kicker: {
+    marginBottom: 5,
+    color: '#bef264',
+    fontFamily: 'Salsa',
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: '#ffffff',
+    fontFamily: 'Salsa',
+    fontSize: 28,
+    lineHeight: 33,
+    letterSpacing: 0.1,
+  },
+  alternateTitle: {
+    marginTop: 7,
+    color: 'rgba(255,255,255,0.56)',
+    fontFamily: 'Salsa',
+    fontSize: 13,
+  },
+  content: {
+    paddingHorizontal: 20,
+  },
+  quickFacts: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.14)',
+    paddingVertical: 15,
+  },
+  quickFact: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickFactDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  quickFactValue: {
+    color: '#ffffff',
+    fontFamily: 'Salsa',
+    fontSize: 16,
+  },
+  quickFactLabel: {
+    marginTop: 4,
+    color: 'rgba(255,255,255,0.45)',
+    fontFamily: 'Salsa',
+    fontSize: 9,
+    letterSpacing: 0.9,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+  },
+  primaryAction: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 51,
+    borderRadius: 15,
+    backgroundColor: '#bef264',
+  },
+  primaryActionDisabled: {
+    backgroundColor: '#3f4a23',
+  },
+  primaryActionText: {
+    color: '#152008',
+    fontFamily: 'Salsa',
+    fontSize: 16,
+  },
+  secondaryAction: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 91,
+    borderWidth: 1,
+    borderColor: 'rgba(190,242,100,0.65)',
+    borderRadius: 15,
+    backgroundColor: 'rgba(163,230,53,0.1)',
+  },
+  secondaryActionDisabled: {
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  secondaryActionText: {
+    color: '#ffffff',
+    fontFamily: 'Salsa',
+    fontSize: 16,
+  },
+  upcomingNotice: {
+    marginTop: 10,
+    color: 'rgba(255,255,255,0.52)',
+    fontFamily: 'Salsa',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  section: {
+    marginTop: 34,
+  },
+  sectionHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 20,
+  },
+  sectionTitle: {
+    flex: 1,
+    color: '#ffffff',
+    fontFamily: 'Salsa',
+    fontSize: 27,
+    letterSpacing: 0.2,
+  },
+  sectionSubtitle: {
+    marginTop: 8,
+    color: 'rgba(255,255,255,0.58)',
+    fontFamily: 'Salsa',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  synopsis: {
+    marginTop: 12,
+    color: 'rgba(255,255,255,0.75)',
+    fontFamily: 'Salsa',
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  readMore: {
+    marginTop: 12,
+    color: '#bef264',
+    fontFamily: 'Salsa',
+    fontSize: 14,
+  },
+  infoPanel: {
+    marginTop: 29,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.16)',
+  },
+  detailLine: {
+    flexDirection: 'row',
+    gap: 18,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  detailLabel: {
+    width: 72,
+    color: 'rgba(255,255,255,0.43)',
+    fontFamily: 'Salsa',
+    fontSize: 12,
+  },
+  detailValue: {
+    flex: 1,
+    color: '#f5f5f4',
+    fontFamily: 'Salsa',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'right',
+  },
+  detailValueAccent: {
+    color: '#d9f99d',
+  },
+  episodeSection: {
+    marginTop: 36,
+  },
+  episodeActionRow: {
+    flexDirection: 'row',
+    gap: 11,
+    marginTop: 18,
+  },
+  episodeOption: {
+    flex: 1,
+    minHeight: 95,
+    justifyContent: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'rgba(190,242,100,0.28)',
+    borderRadius: 18,
+    backgroundColor: '#14180f',
+    padding: 15,
+  },
+  episodeOptionDisabled: {
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: '#141414',
+  },
+  episodeOptionEyebrow: {
+    color: '#bef264',
+    fontFamily: 'Salsa',
+    fontSize: 9,
+    letterSpacing: 0.85,
+  },
+  episodeOptionTitle: {
+    marginTop: 5,
+    color: '#ffffff',
+    fontFamily: 'Salsa',
+    fontSize: 20,
+  },
+  extrasLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: hp(16),
+  },
+  errorBackButton: {
+    marginTop: 18,
+    borderRadius: 14,
+    backgroundColor: '#bef264',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  errorBackText: {
+    color: '#182008',
+    fontFamily: 'Salsa',
+    fontSize: 15,
   },
 });

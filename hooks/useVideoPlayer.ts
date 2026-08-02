@@ -72,6 +72,54 @@ export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' |
   const videoSourceKey = `${activeServerIndex}:${videoSource ?? ''}:${referer ?? ''}`;
 
   // -----------------------------------------------------------------------
+  // HLS quality ladder — parse master.m3u8 directly
+  // -----------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!videoSource || !referer) {
+      setAvailableQualities([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const parseM3u8Qualities = async () => {
+      try {
+        const res = await fetch(videoSource, {
+          headers: { Referer: referer },
+        });
+        if (!res.ok || cancelled) return;
+        const text = await res.text();
+        if (cancelled) return;
+
+        // Each EXT-X-STREAM-INF line may carry RESOLUTION=WxH
+        const qualities: { height: number; label: string }[] = [];
+        const lines = text.split('\n');
+        for (const line of lines) {
+          const match = line.match(/RESOLUTION=\d+x(\d+)/);
+          if (match) {
+            const height = parseInt(match[1], 10);
+            if (height && !qualities.some((q) => q.height === height)) {
+              qualities.push({ height, label: `${height}p` });
+            }
+          }
+        }
+
+        qualities.sort((a, b) => b.height - a.height);
+        setAvailableQualities(qualities);
+      } catch {
+        // silently fall back to Auto-only
+        setAvailableQualities([]);
+      }
+    };
+
+    parseM3u8Qualities();
+    return () => {
+      cancelled = true;
+    };
+  }, [videoSource, referer, setAvailableQualities]);
+
+  // -----------------------------------------------------------------------
   // Subtitle tracks
   // -----------------------------------------------------------------------
 
@@ -235,21 +283,8 @@ export const useVideoPlayer = (animeId: string, episodeId: string, type: 'sub' |
     [setIsBuffering]
   );
 
-  const handleVideoTracks = useCallback(
-    (data: { videoTracks?: any[] }) => {
-      const tracks = data?.videoTracks ?? [];
-      const byHeight = new Map<number, { height: number; label: string }>();
-      tracks.forEach((track) => {
-        const height = track.height ?? track.trackHeight;
-        if (!height) return;
-        if (!byHeight.has(height)) {
-          byHeight.set(height, { height, label: `${height}p` });
-        }
-      });
-      setAvailableQualities(Array.from(byHeight.values()).sort((a, b) => b.height - a.height));
-    },
-    [setAvailableQualities]
-  );
+  // kept as a no-op for the onVideoTracks prop (native tracks are unreliable for HLS ladders)
+  const handleVideoTracks = useCallback(() => {}, []);
 
   const handleEnd = useCallback(() => {
     setIsPlaying(false);

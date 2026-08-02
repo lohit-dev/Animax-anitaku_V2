@@ -55,12 +55,8 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(
                       <Star1 variant="Bold" size={12} color="#000" />
                       <Text className="font-salsa text-black">{item.rating}</Text>
                     </View>
-                  ) : item.sub || item.dub ? (
-                    <Text className="font-salsa font-bold text-black">
-                      {item.sub && item.dub ? `Sub | Dub` : item.sub ? `Sub` : `Dub`}
-                    </Text>
                   ) : (
-                    <Text>{item.type}</Text>
+                    <Text className="font-salsa font-bold text-black">{item.type || 'Anime'}</Text>
                   )}
                 </Pressable>
               </View>

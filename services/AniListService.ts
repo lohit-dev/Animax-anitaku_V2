@@ -1,6 +1,5 @@
 import {
   AniListAnimeDetails,
-  AniListEpisode,
   AniListHomeResponse,
   AniListSearchResponse,
   Anime,
@@ -34,6 +33,7 @@ type RawMedia = {
   title?: { romaji?: string | null; english?: string | null; native?: string | null } | null;
   synonyms?: string[] | null;
   coverImage?: { large?: string | null; extraLarge?: string | null } | null;
+  bannerImage?: string | null;
   description?: string | null;
   averageScore?: number | null;
   format?: string | null;
@@ -48,6 +48,36 @@ type RawMedia = {
   nextAiringEpisode?: { episode?: number | null } | null;
 };
 
+type RawCharacter = {
+  id: number;
+  name?: { full?: string | null; native?: string | null } | null;
+  image?: { large?: string | null } | null;
+};
+
+type RawVoiceActor = {
+  id: number;
+  name?: { full?: string | null; native?: string | null } | null;
+  image?: { large?: string | null } | null;
+  languageV2?: string | null;
+};
+
+type RawExtrasMedia = {
+  bannerImage?: string | null;
+  studios?: {
+    nodes?: { name?: string | null; isAnimationStudio?: boolean | null }[] | null;
+  } | null;
+  characters?: {
+    edges?:
+      | {
+          role?: string | null;
+          node?: RawCharacter | null;
+          voiceActors?: RawVoiceActor[] | null;
+        }[]
+      | null;
+  } | null;
+  recommendations?: { nodes?: { mediaRecommendation?: RawMedia | null }[] | null } | null;
+};
+
 type RawPage = {
   pageInfo: { currentPage: number; hasNextPage: boolean };
   media: RawMedia[];
@@ -59,6 +89,7 @@ const MEDIA_FIELDS = `
   title { romaji english native }
   synonyms
   coverImage { large extraLarge }
+  bannerImage
   description
   averageScore
   format
@@ -89,6 +120,35 @@ const HOME_QUERY = `
     }
     completed: Page(page: 1, perPage: 20) {
       media(type: ANIME, isAdult: false, status: FINISHED, sort: [SCORE_DESC]) { ${MEDIA_FIELDS} }
+    }
+  }
+`;
+
+const SUBBED_QUERY = `
+  query SubbedAnime {
+    Page(page: 1, perPage: 30) {
+      media(
+        type: ANIME
+        isAdult: false
+        countryOfOrigin: JP
+        sort: [POPULARITY_DESC]
+      ) { ${MEDIA_FIELDS} }
+    }
+  }
+`;
+
+const DUBBED_QUERY = `
+  query DubbedAnime {
+    Page(page: 1, perPage: 30) {
+      media(
+        type: ANIME
+        isAdult: false
+        countryOfOrigin: JP
+        sort: [SCORE_DESC]
+        status_in: [FINISHED, RELEASING]
+        averageScore_greater: 70
+        popularity_greater: 100000
+      ) { ${MEDIA_FIELDS} }
     }
   }
 `;
@@ -127,11 +187,28 @@ const DETAILS_QUERY = `
   }
 `;
 
-const EPISODES_QUERY = `
-  query AnimeEpisodes($id: Int!) {
+const EXTRAS_QUERY = `
+  query AnimeExtras($id: Int!) {
     Media(id: $id, type: ANIME) {
-      episodes
-      nextAiringEpisode { episode }
+      bannerImage
+      studios(isMain: true) { nodes { name isAnimationStudio } }
+      characters(page: 1, perPage: 12, sort: [ROLE, RELEVANCE]) {
+        edges {
+          role
+          node { id name { full native } image { large } }
+          voiceActors(language: JAPANESE) {
+            id
+            name { full native }
+            image { large }
+            languageV2
+          }
+        }
+      }
+      recommendations(page: 1, perPage: 12) {
+        nodes {
+          mediaRecommendation { ${MEDIA_FIELDS} }
+        }
+      }
     }
   }
 `;
@@ -212,6 +289,7 @@ const mapDetails = (media: RawMedia): AniListAnimeDetails => {
     title: titleOf(media),
     alternateTitles: titles.filter((title) => title !== titleOf(media)),
     image: media.coverImage?.extraLarge || media.coverImage?.large || '',
+    bannerImage: media.bannerImage || undefined,
     synopsis: cleanHtml(media.description) || 'No description is available for this anime.',
     rating: media.averageScore ? `${(media.averageScore / 10).toFixed(1)}` : 'N/A',
     quality: formatLabel(media.format),
@@ -356,26 +434,58 @@ export const fetchAniListAnimeById = async (identifier: string): Promise<AniList
   return mapDetails(data.Media);
 };
 
-export const fetchAniListEpisodes = async (animeId: string): Promise<AniListEpisode[]> => {
+export const fetchAniListAnimeExtras = async (animeId: string) => {
   const id = Number(animeId);
   if (!Number.isInteger(id) || id <= 0) {
-    throw new AniListRequestError('An AniList ID is required to load episodes.', 400);
+    throw new AniListRequestError('An AniList ID is required to load anime extras.', 400);
   }
 
-  const data = await queryAniList<{
-    Media: Pick<RawMedia, 'episodes' | 'nextAiringEpisode'> | null;
-  }>(EPISODES_QUERY, { id });
+  const data = await queryAniList<{ Media: RawExtrasMedia | null }>(EXTRAS_QUERY, { id });
+  if (!data.Media) throw new AniListRequestError('Anime extras were not found on AniList.', 404);
 
-  if (!data.Media) throw new AniListRequestError('Anime not found on AniList.', 404);
+  const cast = (data.Media.characters?.edges ?? [])
+    .map((edge) => {
+      const character = edge.node;
+      if (!character) return null;
+      const actor = edge.voiceActors?.[0];
 
-  // AniList does not expose individual episode titles or dub availability.
-  // It does provide the official episode count, which is the stable metadata
-  // needed to build a numbered episode picker.
-  const count =
-    data.Media.episodes ?? Math.max(0, (data.Media.nextAiringEpisode?.episode ?? 1) - 1);
+      return {
+        id: String(character.id),
+        name: character.name?.full || character.name?.native || 'Unknown character',
+        image: character.image?.large || '',
+        role: formatLabel(edge.role),
+        voiceActor: actor
+          ? {
+              id: String(actor.id),
+              name: actor.name?.full || actor.name?.native || 'Unknown voice actor',
+              image: actor.image?.large || '',
+              language: actor.languageV2 || undefined,
+            }
+          : undefined,
+      };
+    })
+    .filter((member): member is NonNullable<typeof member> => Boolean(member));
 
-  return Array.from({ length: count }, (_, index) => {
-    const number = String(index + 1);
-    return { id: number, number, title: `Episode ${number}` };
-  });
+  return {
+    bannerImage: data.Media.bannerImage || undefined,
+    studios: (data.Media.studios?.nodes ?? [])
+      .filter((studio) => studio.isAnimationStudio !== false)
+      .map((studio) => studio.name)
+      .filter((name): name is string => Boolean(name)),
+    cast,
+    recommendations: (data.Media.recommendations?.nodes ?? [])
+      .map((recommendation) => recommendation.mediaRecommendation)
+      .filter((media): media is RawMedia => Boolean(media))
+      .map(mapAnime),
+  };
+};
+
+export const fetchAniListSubbed = async (): Promise<Anime[]> => {
+  const data = await queryAniList<{ Page: Pick<RawPage, 'media'> }>(SUBBED_QUERY);
+  return data.Page.media.map(mapAnime);
+};
+
+export const fetchAniListDubbed = async (): Promise<Anime[]> => {
+  const data = await queryAniList<{ Page: Pick<RawPage, 'media'> }>(DUBBED_QUERY);
+  return data.Page.media.map(mapAnime);
 };

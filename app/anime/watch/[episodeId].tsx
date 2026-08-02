@@ -84,7 +84,7 @@ const WatchScreen = () => {
     handleVideoTap,
   } = usePlayerControls(seekTo, handleExit);
 
-  const { data: episodeListData } = useEpisodeList(animeId);
+  const { data: episodeListData } = useEpisodeList(animeId, type);
   const episodes = episodeListData ?? [];
 
   // -----------------------------------------------------------------------
@@ -182,12 +182,20 @@ const WatchScreen = () => {
   // Loading / error state
   // -----------------------------------------------------------------------
 
+  useEffect(() => {
+    if (!isLoading && !videoSource) {
+      const timer = setTimeout(handleExit, 1600);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [handleExit, isLoading, videoSource]);
+
   if (isLoading || !videoSource) {
     return (
       <View className="flex-1 items-center justify-center" style={{ backgroundColor: COLORS.bg }}>
         <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={{ color: COLORS.textMuted, marginTop: 16 }}>
-          {isLoading ? 'Loading video source…' : 'No video source available'}
+          {isLoading ? 'Loading video source…' : 'No video source available. Returning…'}
         </Text>
         {queryError && (
           <Text style={{ color: COLORS.danger, marginTop: 8 }}>Error: {String(queryError)}</Text>

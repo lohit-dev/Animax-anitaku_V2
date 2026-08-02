@@ -10,7 +10,7 @@ import SearchInput from '~/components/search/SearchInput';
 import AnimeCard from '~/components/shared/AnimeCard';
 import { wp } from '~/helpers/common';
 import { useDebounce } from '~/hooks/useDebounce';
-import { fetchAniListHomePage, fetchAniListSearch } from '~/services/AniListService';
+import { fetchAniListDubbed, fetchAniListSearch, fetchAniListSubbed } from '~/services/AniListService';
 import { Anime, SearchResponse } from '~/types';
 
 const Discover = () => {
@@ -39,21 +39,24 @@ const Discover = () => {
     enabled: !!normalizedDebouncedSearchQuery,
   });
 
-  const {
-    data: catalogueData,
-    isLoading: isCatalogueLoading,
-    error: catalogueError,
-  } = useQuery({
-    queryKey: ['anilist', 'home'],
-    queryFn: fetchAniListHomePage,
+  const { data: subbedAnime = [], isLoading: isSubbedLoading } = useQuery<Anime[]>({
+    queryKey: ['anilist', 'subbed'],
+    queryFn: fetchAniListSubbed,
+    staleTime: 10 * 60 * 1000,
   });
+
+  const { data: dubbedAnime = [], isLoading: isDubbedLoading } = useQuery<Anime[]>({
+    queryKey: ['anilist', 'dubbed'],
+    queryFn: fetchAniListDubbed,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const isCatalogueLoading = isSubbedLoading || isDubbedLoading;
 
   const searchAnimes = useMemo(
     () => (SearchResults?.pages.flatMap((page: SearchResponse) => page.results) ?? []) as Anime[],
     [SearchResults]
   );
-  const trendingAnime = catalogueData?.data.topTables.newlyAdded ?? [];
-  const upcomingAnime = catalogueData?.data.upcoming ?? [];
   const isDebouncing = normalizedSearchQuery !== normalizedDebouncedSearchQuery;
   const isSearchLoading = hasSearchQuery && (isLoading || isDebouncing);
 
@@ -91,16 +94,11 @@ const Discover = () => {
               />
             </View>
           )}
-          {catalogueError && (
-            <Text className="font-salsa px-8 py-12 text-center text-neutral-400">
-              AniList catalogue is temporarily unavailable. Please try again.
-            </Text>
+          {subbedAnime.length > 0 && (
+            <RowItem data={subbedAnime} name="Subbed Anime" seeAll />
           )}
-          {trendingAnime.length > 0 && (
-            <RowItem data={trendingAnime} name="Trending Anime" seeAll />
-          )}
-          {upcomingAnime.length > 0 && (
-            <RowItem data={upcomingAnime} name="Upcoming Anime" seeAll />
+          {dubbedAnime.length > 0 && (
+            <RowItem data={dubbedAnime} name="Dubbed Anime" seeAll />
           )}
         </ScrollView>
       )}

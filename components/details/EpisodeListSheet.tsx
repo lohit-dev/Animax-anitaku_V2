@@ -44,7 +44,7 @@ const EpisodeListSheet = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  const { data: episodeData, isLoading, error } = useEpisodeList(animeId);
+  const { data: episodeData, isLoading, error } = useEpisodeList(animeId, type);
 
   const episodes: Episode[] = useMemo(() => {
     if (!episodeData) return [];
@@ -159,7 +159,7 @@ const EpisodeListSheet = ({
             {type === 'sub' ? 'Subbed' : 'Dubbed'} Episodes
           </Text>
           <Text className="font-salsa text-sm text-neutral-400">
-            {episodes.length} Episodes Available
+            {isLoading ? 'Loading episodes…' : `${episodes.length} Episodes Available`}
           </Text>
         </View>
 
