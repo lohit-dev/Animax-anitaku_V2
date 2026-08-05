@@ -2,18 +2,12 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'iconsax-react-native';
 import { useEffect, useMemo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  Pressable,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import Video from 'react-native-video';
 
 import { useHistoryStore } from '~/app/_store/useHistoryStore';
 import { usePlayerStore } from '~/app/_store/usePlayerStore';
+import ScalePressable from '~/components/shared/ScalePressable';
 import EpisodeList from '~/components/watch/EpisodeList';
 import PlayerOverlay from '~/components/watch/PlayerOverlay';
 import SettingsSheet from '~/components/watch/SettingsSheet';
@@ -215,9 +209,9 @@ const WatchScreen = () => {
         options={{
           headerShown: !isFullscreen,
           headerLeft: () => (
-            <TouchableOpacity onPress={handleExit} className="p-2">
+            <ScalePressable onPress={handleExit} style={{ padding: 8 }} scaleTo={0.85}>
               <ArrowLeft size={24} color={COLORS.text} />
-            </TouchableOpacity>
+            </ScalePressable>
           ),
           headerStyle: { backgroundColor: COLORS.surface },
           headerTitleStyle: { color: COLORS.text },
@@ -304,7 +298,9 @@ const WatchScreen = () => {
         />
       </View>
 
-      {/* Settings sheet (servers / subtitles / quality) */}
+      {/* Settings sheet lives OUTSIDE fullscreen player so it always
+          renders in normal portrait flow — sheet itself slides from
+          the true bottom of the screen */}
       <SettingsSheet
         sheetAnim={sheetAnim}
         servers={servers}

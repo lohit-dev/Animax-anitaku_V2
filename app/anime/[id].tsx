@@ -12,7 +12,6 @@ import {
   Share as RNShare,
   StyleSheet,
   Text,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -31,6 +30,7 @@ import { useSavedAnimesStore } from '~/app/_store/useSavedAnimesStore';
 import CharacterVoiceActorRow from '~/components/details/CharacterVoiceActorRow';
 import EpisodeListSheet from '~/components/details/EpisodeListSheet';
 import RowItem from '~/components/home/RowItem';
+import ScalePressable from '~/components/shared/ScalePressable';
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
 import { fetchAniListAnimeById, fetchAniListAnimeExtras } from '~/services/AniListService';
@@ -207,9 +207,9 @@ const AnimeDetails = () => {
         <Text className="mt-3 text-center text-xl text-white">
           {error instanceof Error ? error.message : 'An error occurred'}
         </Text>
-        <TouchableOpacity onPress={handleBack} style={styles.errorBackButton}>
+        <ScalePressable onPress={handleBack} style={styles.errorBackButton} haptic="medium">
           <Text style={styles.errorBackText}>Back to discover</Text>
-        </TouchableOpacity>
+        </ScalePressable>
       </View>
     );
   }
@@ -247,34 +247,35 @@ const AnimeDetails = () => {
 
           <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
             <View style={styles.topBar}>
-              <TouchableOpacity
+              <ScalePressable
                 accessibilityLabel="Go back"
-                hitSlop={12}
                 onPress={handleBack}
-                style={styles.topBarButton}>
+                style={styles.topBarButton}
+                scaleTo={0.85}>
                 <ArrowLeft2 color="#FFFFFF" size={24} strokeWidth={2.5} />
-              </TouchableOpacity>
+              </ScalePressable>
 
               <View style={styles.topBarActions}>
-                <TouchableOpacity
+                <ScalePressable
                   accessibilityLabel="Share anime"
-                  hitSlop={10}
                   onPress={handleShare}
-                  style={styles.topBarButton}>
+                  style={styles.topBarButton}
+                  scaleTo={0.85}>
                   <Share color="#FFFFFF" size={22} strokeWidth={2.2} variant="Linear" />
-                </TouchableOpacity>
-                <TouchableOpacity
+                </ScalePressable>
+                <ScalePressable
                   accessibilityLabel={isFav ? 'Remove from library' : 'Add to library'}
-                  hitSlop={10}
                   onPress={handleAddToLibrary}
-                  style={[styles.topBarButton, isFav && styles.topBarButtonActive]}>
+                  style={[styles.topBarButton, isFav && styles.topBarButtonActive]}
+                  scaleTo={0.85}
+                  haptic="medium">
                   <Heart
                     color="#FFFFFF"
                     size={22}
                     strokeWidth={2.2}
                     variant={isFav ? 'Bold' : 'Linear'}
                   />
-                </TouchableOpacity>
+                </ScalePressable>
               </View>
             </View>
           </SafeAreaView>
@@ -330,22 +331,26 @@ const AnimeDetails = () => {
           </View>
 
           <View style={styles.actionRow}>
-            <TouchableOpacity
+            <ScalePressable
               disabled={!canWatch}
               onPress={() => openEpisodeSheet('sub')}
               style={[styles.primaryAction, !canWatch && styles.primaryActionDisabled]}
-              testID="detail-sub-button">
+              testID="detail-sub-button"
+              haptic="medium"
+              scaleTo={0.96}>
               <Text style={styles.primaryActionText}>
                 {canWatch ? 'Watch subbed' : 'Coming soon'}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </ScalePressable>
+            <ScalePressable
               disabled={!canWatch}
               onPress={() => openEpisodeSheet('dub')}
               style={[styles.secondaryAction, !canWatch && styles.secondaryActionDisabled]}
-              testID="detail-dub-button">
+              testID="detail-dub-button"
+              haptic="medium"
+              scaleTo={0.96}>
               <Text style={styles.secondaryActionText}>Dub</Text>
-            </TouchableOpacity>
+            </ScalePressable>
           </View>
 
           {!canWatch ? (
@@ -357,19 +362,19 @@ const AnimeDetails = () => {
           <View style={styles.section}>
             <View style={styles.sectionHeading}>
               <Text style={styles.sectionTitle}>{getFormattedTitle('The story')}</Text>
-              <TouchableOpacity accessibilityLabel="Share anime" hitSlop={10} onPress={handleShare}>
+              <ScalePressable accessibilityLabel="Share anime" onPress={handleShare} scaleTo={0.85}>
                 <Share color="#bef264" size={22} strokeWidth={2} variant="Linear" />
-              </TouchableOpacity>
+              </ScalePressable>
             </View>
             <Text style={styles.synopsis}>{displayedSynopsis}</Text>
             {hasLongSynopsis ? (
-              <TouchableOpacity
-                hitSlop={8}
-                onPress={() => setShowFullDescription((current) => !current)}>
+              <ScalePressable
+                onPress={() => setShowFullDescription((current) => !current)}
+                haptic="none">
                 <Text style={styles.readMore}>
                   {showFullDescription ? 'Show less' : 'Read full story'}
                 </Text>
-              </TouchableOpacity>
+              </ScalePressable>
             ) : null}
           </View>
 

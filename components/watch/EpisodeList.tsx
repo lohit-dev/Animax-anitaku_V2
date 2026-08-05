@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { FlatList, Image, Pressable, Text, TextInput, View } from 'react-native';
 
+import ScalePressable from '~/components/shared/ScalePressable';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
 
 export type Episode = {
@@ -98,9 +99,9 @@ const EpisodeList = ({
                   returnKeyType="go"
                   style={{ flex: 1, color: COLORS.text, height: 42 }}
                 />
-                <Pressable onPress={handleJump} hitSlop={8}>
+                <ScalePressable onPress={handleJump} scaleTo={0.88} haptic="light">
                   <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 12 }}>Go</Text>
-                </Pressable>
+                </ScalePressable>
               </View>
             )}
           </View>
@@ -112,8 +113,10 @@ const EpisodeList = ({
           currentIndex >= 0 && Number(item.number) < Number(episodes[currentIndex]?.number ?? 0);
 
         return (
-          <Pressable
+          <ScalePressable
             onPress={() => onSelectEpisode(item)}
+            scaleTo={0.97}
+            haptic="light"
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -173,7 +176,7 @@ const EpisodeList = ({
                 </Text>
               )}
             </View>
-          </Pressable>
+          </ScalePressable>
         );
       }}
     />

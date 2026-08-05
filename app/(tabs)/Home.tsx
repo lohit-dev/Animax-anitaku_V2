@@ -195,20 +195,33 @@ const Home = () => {
           <RowItem
             name="Hot Trends"
             seeAll
+            category="popular"
             data={HomePageData?.data?.topTables?.newlyAdded}
             rounded
           />
           <RowItem
             name="Latest Episodes"
             seeAll
+            category="recent"
             data={HomePageData?.data?.recentUpdates}
             testIdPrefix="latest-episode"
           />
-          <RowItem name="Upcoming Releases" seeAll data={HomePageData?.data?.upcoming} />
-          <RowItem name="Top Airing Now" seeAll data={HomePageData?.data?.topTables?.newReleases} />
+          <RowItem
+            name="Upcoming Releases"
+            seeAll
+            category="upcoming"
+            data={HomePageData?.data?.upcoming}
+          />
+          <RowItem
+            name="Top Airing Now"
+            seeAll
+            category="airing"
+            data={HomePageData?.data?.topTables?.newReleases}
+          />
           <RowItem
             name="Completed Series"
             seeAll
+            category="completed"
             data={HomePageData?.data?.topTables?.justCompleted}
             className="mb-44"
           />

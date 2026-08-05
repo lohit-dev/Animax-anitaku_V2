@@ -1,14 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  ScrollView,
-  Animated,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Pressable, ScrollView, Animated, StyleSheet } from 'react-native';
+
+import ScalePressable from '../shared/ScalePressable';
 
 import { usePlayerStore } from '~/app/_store/usePlayerStore';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
@@ -82,10 +76,12 @@ const SettingsSheet = ({
           className="mb-4 flex-row rounded-full p-1"
           style={{ backgroundColor: COLORS.surfaceRaised }}>
           {(['servers', 'subtitles', 'quality'] as const).map((tab) => (
-            <TouchableOpacity
+            <ScalePressable
               key={tab}
               className="flex-1 items-center rounded-full py-2.5"
               style={{ backgroundColor: activeTab === tab ? COLORS.accent : 'transparent' }}
+              scaleTo={0.93}
+              haptic="light"
               onPress={() => setActiveTab(tab)}>
               <Text
                 style={{
@@ -96,7 +92,7 @@ const SettingsSheet = ({
                 }}>
                 {tab}
               </Text>
-            </TouchableOpacity>
+            </ScalePressable>
           ))}
         </View>
 

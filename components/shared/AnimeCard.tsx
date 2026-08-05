@@ -1,14 +1,13 @@
 import { useRouter } from 'expo-router';
 import { Star1 } from 'iconsax-react-native';
 import React from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+
+import ScalePressable from './ScalePressable';
 
 import { hp, wp } from '~/helpers/common';
 import { Anime } from '~/types';
-
-// Created at module level so React doesn't re-create them every render
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
 // Cap the stagger delay so long lists don't take forever to appear.
@@ -33,37 +32,42 @@ const AnimeCard: React.FC<AnimeCardProps> = React.memo(
     };
 
     return (
-      <AnimatedTouchableOpacity
-        testID={testID}
-        accessibilityRole="button"
-        accessibilityLabel={item.title || 'anime card'}
-        onPress={handleNavigation}
+      <Animated.View
         entering={FadeInDown.delay(Math.min(index, MAX_STAGGER_ITEMS) * STAGGER_DELAY_MS).duration(
           400
         )}
         className="flex-1 items-center justify-center p-2">
-        <View className="overflow-hidden rounded-2xl">
-          <AnimatedImageBackground
-            source={{ uri: item.image }}
-            style={styles.Image}
-            sharedTransitionTag="image">
-            {detailsEnabled && (
-              <View className="flex-1 items-end justify-start p-2">
-                <Pressable className="flex-row items-center justify-center space-x-1 rounded-full bg-lime-200 px-2 py-[2]">
-                  {item.rating ? (
-                    <View className="flex flex-row items-center justify-center gap-1">
-                      <Star1 variant="Bold" size={12} color="#000" />
-                      <Text className="font-salsa text-black">{item.rating}</Text>
-                    </View>
-                  ) : (
-                    <Text className="font-salsa font-bold text-black">{item.type || 'Anime'}</Text>
-                  )}
-                </Pressable>
-              </View>
-            )}
-          </AnimatedImageBackground>
-        </View>
-      </AnimatedTouchableOpacity>
+        <ScalePressable
+          testID={testID}
+          accessibilityRole="button"
+          accessibilityLabel={item.title || 'anime card'}
+          onPress={handleNavigation}
+          scaleTo={0.92}>
+          <View className="overflow-hidden rounded-2xl">
+            <AnimatedImageBackground
+              source={{ uri: item.image }}
+              style={styles.Image}
+              sharedTransitionTag="image">
+              {detailsEnabled && (
+                <View className="flex-1 items-end justify-start p-2">
+                  <View className="flex-row items-center justify-center space-x-1 rounded-full bg-lime-200 px-2 py-[2]">
+                    {item.rating ? (
+                      <View className="flex flex-row items-center justify-center gap-1">
+                        <Star1 variant="Bold" size={12} color="#000" />
+                        <Text className="font-salsa text-black">{item.rating}</Text>
+                      </View>
+                    ) : (
+                      <Text className="font-salsa font-bold text-black">
+                        {item.type || 'Anime'}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              )}
+            </AnimatedImageBackground>
+          </View>
+        </ScalePressable>
+      </Animated.View>
     );
   }
 );

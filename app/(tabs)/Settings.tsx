@@ -9,9 +9,11 @@ import {
   Logout,
 } from 'iconsax-react-native';
 import { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View, Switch, Image } from 'react-native';
+import { ScrollView, Text, View, Switch, Image } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import ScalePressable from '~/components/shared/ScalePressable';
 
 const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -109,8 +111,9 @@ const Settings = () => {
         <View className="p-6">
           {settingsOptions.map((option, index) => (
             <Animated.View key={option.title} entering={FadeInDown.delay(index * 100)}>
-              <TouchableOpacity
+              <ScalePressable
                 onPress={option.onPress}
+                scaleTo={0.97}
                 className="mb-4 flex-row items-center rounded-xl bg-neutral-900 p-4">
                 <View className="mr-4 rounded-full bg-lime-500/20 p-2">{option.icon}</View>
                 <View className="flex-1">
@@ -118,7 +121,7 @@ const Settings = () => {
                   <Text className="font-salsa text-sm text-neutral-400">{option.subtitle}</Text>
                 </View>
                 {option.rightElement || <ArrowRight2 size={20} color="#a3e635" />}
-              </TouchableOpacity>
+              </ScalePressable>
             </Animated.View>
           ))}
         </View>

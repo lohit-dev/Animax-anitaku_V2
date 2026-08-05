@@ -489,3 +489,60 @@ export const fetchAniListDubbed = async (): Promise<Anime[]> => {
   const data = await queryAniList<{ Page: Pick<RawPage, 'media'> }>(DUBBED_QUERY);
   return data.Page.media.map(mapAnime);
 };
+
+// ---------------------------------------------------------------------------
+// Browse (View All) – paginated by category key
+// ---------------------------------------------------------------------------
+
+export type BrowseCategory =
+  'trending' | 'airing' | 'upcoming' | 'popular' | 'completed' | 'recent';
+
+const BROWSE_QUERY_NO_STATUS = `
+  query Browse($page: Int!, $perPage: Int!, $sort: [MediaSort]) {
+    Page(page: $page, perPage: $perPage) {
+      pageInfo { currentPage hasNextPage }
+      media(type: ANIME, isAdult: false, sort: $sort) { ${MEDIA_FIELDS} }
+    }
+  }
+`;
+
+const BROWSE_QUERY_WITH_STATUS = `
+  query Browse($page: Int!, $perPage: Int!, $sort: [MediaSort], $status: MediaStatus!) {
+    Page(page: $page, perPage: $perPage) {
+      pageInfo { currentPage hasNextPage }
+      media(type: ANIME, isAdult: false, sort: $sort, status: $status) { ${MEDIA_FIELDS} }
+    }
+  }
+`;
+
+const CATEGORY_VARS: Record<BrowseCategory, { sort: string[]; status?: string }> = {
+  trending: { sort: ['TRENDING_DESC'] },
+  airing: { sort: ['POPULARITY_DESC'], status: 'RELEASING' },
+  upcoming: { sort: ['POPULARITY_DESC'], status: 'NOT_YET_RELEASED' },
+  popular: { sort: ['POPULARITY_DESC'] },
+  completed: { sort: ['SCORE_DESC'], status: 'FINISHED' },
+  recent: { sort: ['UPDATED_AT_DESC'], status: 'RELEASING' },
+};
+
+export const fetchAniListBrowse = async (
+  category: BrowseCategory,
+  page: number,
+  perPage = 24
+): Promise<AniListSearchResponse> => {
+  const vars = CATEGORY_VARS[category];
+
+  const data = await queryAniList<{ Page: RawPage }>(
+    vars.status ? BROWSE_QUERY_WITH_STATUS : BROWSE_QUERY_NO_STATUS,
+    vars.status
+      ? { page, perPage, sort: vars.sort, status: vars.status }
+      : { page, perPage, sort: vars.sort }
+  );
+
+  return {
+    results: data.Page.media.map(mapAnime),
+    pagination: {
+      currentPage: data.Page.pageInfo.currentPage,
+      hasNextPage: data.Page.pageInfo.hasNextPage,
+    },
+  };
+};

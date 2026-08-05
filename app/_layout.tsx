@@ -102,6 +102,7 @@ export default function RootLayout() {
                     options={{ headerShown: false }}
                     initialParams={{ linking }}
                   />
+                  <Stack.Screen name="browse/[category]" options={{ headerShown: false }} />
                 </Stack>
               </ThemeProvider>
             </ToastProvider>

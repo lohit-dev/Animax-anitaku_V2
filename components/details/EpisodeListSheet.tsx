@@ -2,8 +2,10 @@ import { BottomSheetModal, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { Play, SearchNormal1 } from 'iconsax-react-native';
 import { useCallback, useMemo, useState, RefObject } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+
+import ScalePressable from '../shared/ScalePressable';
 
 import { useEpisodeList } from '~/hooks/useEpisodeList';
 
@@ -104,13 +106,14 @@ const EpisodeListSheet = ({
   const renderEpisodeCard = useCallback(
     ({ item, index }: { item: Episode; index: number }) => (
       <Animated.View entering={FadeInDown.delay(Math.min(index, 12) * 50).duration(300)}>
-        <TouchableOpacity
+        <ScalePressable
           testID={`episode-card-${index}`}
           className="mx-4 mb-4 overflow-hidden rounded-xl bg-neutral-800/40 p-4"
           style={{
             borderLeftWidth: 4,
             borderLeftColor: item.isFiller ? '#ef4444' : '#84cc16',
           }}
+          scaleTo={0.97}
           onPress={() => handleEpisodePress(item)}>
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
@@ -126,13 +129,14 @@ const EpisodeListSheet = ({
                 {item.title}
               </Text>
             </View>
-            <TouchableOpacity
+            <ScalePressable
               className="rounded-full bg-lime-500 p-3"
+              haptic="medium"
               onPress={() => handleEpisodePress(item)}>
               <Play size={20} color="#FFF" variant="Bold" />
-            </TouchableOpacity>
+            </ScalePressable>
           </View>
-        </TouchableOpacity>
+        </ScalePressable>
       </Animated.View>
     ),
     [handleEpisodePress]
@@ -175,8 +179,9 @@ const EpisodeListSheet = ({
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity
+          <ScalePressable
             onPress={toggleSortOrder}
+            scaleTo={0.94}
             className="rounded-xl bg-neutral-800/40 px-4 py-2">
             <Text className="font-salsa text-base">
               <Text className={sortOrder === 'asc' ? 'text-lime-400' : 'text-neutral-400'}>
@@ -187,7 +192,7 @@ const EpisodeListSheet = ({
                 DESC
               </Text>
             </Text>
-          </TouchableOpacity>
+          </ScalePressable>
         </View>
 
         {/* Episodes List with loading state */}

@@ -1,50 +1,53 @@
 import { router } from 'expo-router';
-import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, ImageBackground, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 
 import AnimeCard from '../shared/AnimeCard';
+import ScalePressable from '../shared/ScalePressable';
 
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { hp, wp } from '~/helpers/common';
+import { BrowseCategory } from '~/services/AniListService';
 import { Anime } from '~/types';
 
 type RowItemProps = {
   name: string;
   seeAll: boolean;
   data: Anime[] | undefined;
+  category?: BrowseCategory;
   className?: string;
   rounded?: boolean;
   testIdPrefix?: string;
 };
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
 const RowItem = ({
   name,
   seeAll = true,
   data,
+  category,
   className,
   rounded = false,
   testIdPrefix,
 }: RowItemProps) => {
   const roundedRenderItem = ({ item, index }: { item: Anime; index: number }) => {
     return (
-      <AnimatedTouchableOpacity
-        entering={FadeInRight.delay(index * 200).duration(500)}
-        onPress={() => {
-          router.push({ pathname: '/anime/[id]', params: { id: item.slug, poster: item.image } });
-        }}
-        className="flex px-2">
-        <View className="overflow-hidden rounded-full">
-          <ImageBackground
-            source={{ uri: item.image }}
-            className="flex items-center justify-center"
-            style={styles.roundedImage}>
-            <View className="absolute bottom-0 left-0 right-0 top-0 z-auto bg-black opacity-50" />
-            <Text className="font-salsa text-5xl text-lime-400">{index + 1}</Text>
-          </ImageBackground>
-        </View>
-      </AnimatedTouchableOpacity>
+      <Animated.View entering={FadeInRight.delay(index * 200).duration(500)}>
+        <ScalePressable
+          onPress={() => {
+            router.push({ pathname: '/anime/[id]', params: { id: item.slug, poster: item.image } });
+          }}
+          className="flex px-2">
+          <View className="overflow-hidden rounded-full">
+            <ImageBackground
+              source={{ uri: item.image }}
+              className="flex items-center justify-center"
+              style={styles.roundedImage}>
+              <View className="absolute bottom-0 left-0 right-0 top-0 z-auto bg-black opacity-50" />
+              <Text className="font-salsa text-5xl text-lime-400">{index + 1}</Text>
+            </ImageBackground>
+          </View>
+        </ScalePressable>
+      </Animated.View>
     );
   };
 
@@ -55,9 +58,18 @@ const RowItem = ({
           {getFormattedTitle(name)}
         </Text>
         {seeAll && (
-          <TouchableOpacity onPress={() => {}}>
+          <ScalePressable
+            onPress={() => {
+              if (category) {
+                router.push({
+                  pathname: '/browse/[category]',
+                  params: { category, title: encodeURIComponent(name) },
+                });
+              }
+            }}
+            haptic={category ? 'light' : 'none'}>
             <Text className="font-salsa text-base text-lime-300">View all</Text>
-          </TouchableOpacity>
+          </ScalePressable>
         )}
       </View>
       <FlatList

@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+
+import ScalePressable from '../shared/ScalePressable';
 
 import { darkTheme } from '~/constants/Colors';
 import { hp, wp } from '~/helpers/common';
@@ -50,14 +52,15 @@ const TabBar = ({ state, descriptors, navigation, insets }: TabBarProps) => {
           : darkTheme.colors.onSurfaceVariant;
 
         return (
-          <TouchableOpacity
+          <ScalePressable
             key={route.key}
-            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityRole="tab"
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
             onPress={onPress}
-            className="h-full flex-1 items-center justify-center"
-            activeOpacity={0.6}>
+            scaleTo={0.88}
+            haptic="light"
+            className="h-full flex-1 items-center justify-center">
             <View style={[styles.iconSlot, isFocused && styles.activeIconPill]}>
               {options.tabBarIcon
                 ? options.tabBarIcon({ focused: isFocused, color, size: 24 })
@@ -66,7 +69,7 @@ const TabBar = ({ state, descriptors, navigation, insets }: TabBarProps) => {
             <Text className="font-salsa text-xs" style={{ color }}>
               {label as string}
             </Text>
-          </TouchableOpacity>
+          </ScalePressable>
         );
       })}
     </View>

@@ -1,14 +1,13 @@
 import { ArrowSwapVertical } from 'iconsax-react-native';
 import React from 'react';
-import { FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, ImageBackground, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInRight } from 'react-native-reanimated';
+
+import ScalePressable from '../shared/ScalePressable';
 
 import { getFormattedTitle } from '~/helpers/TextFormat';
 import { wp } from '~/helpers/common';
 import { CharacterVoiceActor } from '~/types';
-
-// Created once outside the component so it's not re-created on every render
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 type CharacterVoiceActorRowProps = {
   data: CharacterVoiceActor[];
@@ -30,46 +29,50 @@ const RoundedRowItem = ({ item }: RoundedRowItemProps) => {
   return (
     <View className="flex items-center justify-center">
       {/* Character */}
-      <AnimatedTouchableOpacity
+      <Animated.View
         entering={FadeInRight.duration(500)}
         className="flex items-center justify-center pr-2 pt-2">
-        <View className="overflow-hidden rounded-full">
-          <ImageBackground
-            source={{ uri: item.image }}
-            className="flex items-center justify-center"
-            style={styles.roundedImage}
-          />
-        </View>
-        <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
-          {getFormattedTitle(item.name)}
-        </Text>
-        <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
-          {item.role}
-        </Text>
-      </AnimatedTouchableOpacity>
+        <ScalePressable scaleTo={0.92}>
+          <View className="overflow-hidden rounded-full">
+            <ImageBackground
+              source={{ uri: item.image }}
+              className="flex items-center justify-center"
+              style={styles.roundedImage}
+            />
+          </View>
+          <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
+            {getFormattedTitle(item.name)}
+          </Text>
+          <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
+            {item.role}
+          </Text>
+        </ScalePressable>
+      </Animated.View>
 
       {/* Connector */}
       {item.voiceActor ? <ArrowSwapVertical size="28" color="#a3e635" /> : null}
 
       {/* Voice Actor */}
       {item.voiceActor ? (
-        <AnimatedTouchableOpacity
+        <Animated.View
           entering={FadeInRight.duration(500)}
           className="flex items-center justify-center pr-2 pt-2">
-          <View className="overflow-hidden rounded-full">
-            <ImageBackground
-              source={{ uri: item.voiceActor.image }}
-              className="flex items-center justify-center"
-              style={styles.roundedImage}
-            />
-          </View>
-          <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
-            {getFormattedTitle(item.voiceActor.name)}
-          </Text>
-          <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
-            {item.voiceActor.language || 'Voice Actor'}
-          </Text>
-        </AnimatedTouchableOpacity>
+          <ScalePressable scaleTo={0.92}>
+            <View className="overflow-hidden rounded-full">
+              <ImageBackground
+                source={{ uri: item.voiceActor.image }}
+                className="flex items-center justify-center"
+                style={styles.roundedImage}
+              />
+            </View>
+            <Text className="font-salsa p-1 text-base text-white" numberOfLines={2}>
+              {getFormattedTitle(item.voiceActor.name)}
+            </Text>
+            <Text className="font-salsa p-1 text-base text-lime-400" numberOfLines={1}>
+              {item.voiceActor.language || 'Voice Actor'}
+            </Text>
+          </ScalePressable>
+        </Animated.View>
       ) : null}
     </View>
   );
@@ -91,9 +94,9 @@ export const CharacterVoiceActorRow = ({
           {getFormattedTitle('Characters & Voice Actors')}
         </Text>
         {seeAll && (
-          <TouchableOpacity onPress={() => {}}>
+          <ScalePressable onPress={() => {}} haptic="none">
             <Text className="font-salsa text-base text-lime-300">View all</Text>
-          </TouchableOpacity>
+          </ScalePressable>
         )}
       </View>
       <FlatList

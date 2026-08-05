@@ -1,15 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  Animated,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ActivityIndicator, Animated, StyleSheet } from 'react-native';
 import TextTicker from 'react-native-text-ticker';
+
+import ScalePressable from '../shared/ScalePressable';
 
 import { usePlayerStore, RESIZE_MODES } from '~/app/_store/usePlayerStore';
 import { PLAYER_COLORS as COLORS } from '~/constants/Colors';
@@ -155,12 +150,15 @@ const PlayerOverlay = ({
             marginLeft: -46,
             opacity: controlsAnim,
           }}>
-          <TouchableOpacity className="flex-row items-center" onPress={() => setIsLocked(false)}>
+          <ScalePressable
+            className="flex-row items-center"
+            onPress={() => setIsLocked(false)}
+            scaleTo={0.88}>
             <Ionicons name="lock-closed" size={15} color={COLORS.text} />
             <Text style={{ color: COLORS.text, marginLeft: 6, fontSize: 12, fontWeight: '600' }}>
               Unlock
             </Text>
-          </TouchableOpacity>
+          </ScalePressable>
         </Animated.View>
       )}
 
@@ -234,19 +232,23 @@ const PlayerOverlay = ({
           <View
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex-row items-center justify-center"
             style={{ gap: controlsGap }}>
-            <TouchableOpacity
+            <ScalePressable
               className="items-center justify-center rounded-full"
               style={{
                 width: skipBtnSize,
                 height: skipBtnSize,
                 backgroundColor: 'rgba(0,0,0,0.4)',
               }}
+              scaleTo={0.88}
+              haptic="light"
               onPress={onSeekBackward}>
               <Ionicons name="play-back" size={skipIconSize} color={COLORS.text} />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </ScalePressable>
+            <ScalePressable
               className="items-center justify-center rounded-full"
               style={{ width: playBtnSize, height: playBtnSize, backgroundColor: COLORS.accent }}
+              scaleTo={0.9}
+              haptic="medium"
               onPress={togglePlaying}>
               <Ionicons
                 name={isPlaying ? 'pause' : 'play'}
@@ -254,17 +256,19 @@ const PlayerOverlay = ({
                 color={COLORS.bg}
                 style={isPlaying ? undefined : { marginLeft: 3 }}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </ScalePressable>
+            <ScalePressable
               className="items-center justify-center rounded-full"
               style={{
                 width: skipBtnSize,
                 height: skipBtnSize,
                 backgroundColor: 'rgba(0,0,0,0.4)',
               }}
+              scaleTo={0.88}
+              haptic="light"
               onPress={onSeekForward}>
               <Ionicons name="play-forward" size={skipIconSize} color={COLORS.text} />
-            </TouchableOpacity>
+            </ScalePressable>
           </View>
 
           {/* Bottom gradient */}
@@ -344,13 +348,16 @@ const PlayerOverlay = ({
                 <Text style={{ color: COLORS.textFaint }}> / {formatTimecode(duration)}</Text>
               </Text>
 
-              <TouchableOpacity onPress={() => setIsFullscreen(!isFullscreen)} className="p-1">
+              <ScalePressable
+                onPress={() => setIsFullscreen(!isFullscreen)}
+                className="p-1"
+                scaleTo={0.85}>
                 <Ionicons
                   name={isFullscreen ? 'contract' : 'expand'}
                   size={timecodeFontSize + 6}
                   color={COLORS.textMuted}
                 />
-              </TouchableOpacity>
+              </ScalePressable>
             </View>
           </View>
         </Animated.View>
@@ -384,16 +391,18 @@ const TopButton = ({
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
 }) => (
-  <TouchableOpacity
+  <ScalePressable
     className="items-center justify-center rounded-full"
     style={{
       width: size,
       height: size,
       backgroundColor: 'rgba(38,38,38,0.75)',
     }}
+    scaleTo={0.85}
+    haptic="light"
     onPress={onPress}>
     <Ionicons name={icon} size={iconSize} color={COLORS.text} />
-  </TouchableOpacity>
+  </ScalePressable>
 );
 
 export default PlayerOverlay;
