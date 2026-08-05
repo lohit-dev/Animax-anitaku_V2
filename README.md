@@ -19,33 +19,67 @@ A modern anime streaming application built with **Expo**, **React Native**, and 
 
 ## Screenshots
 
+### Home & Navigation
+
 <table>
 <tr>
 <td><img src="assets/mockups/01-launch.png" width="220"/></td>
-<td><img src="assets/mockups/02-go-to-home-screen.png" width="220"/></td>
-<td><img src="assets/mockups/03-discover-tab.png" width="220"/></td>
-<td><img src="assets/mockups/04-my-list-tab.png" width="220"/></td>
+<td><img src="assets/mockups/02-home-hero.png" width="220"/></td>
+<td><img src="assets/mockups/03-scrolled-home.png" width="220"/></td>
+<td><img src="assets/mockups/04-category-grid.png" width="220"/></td>
 </tr>
-
 <tr>
 <td align="center"><strong>Launch</strong></td>
-<td align="center"><strong>Home</strong></td>
+<td align="center"><strong>Home (Hero)</strong></td>
+<td align="center"><strong>Home (Browse)</strong></td>
+<td align="center"><strong>Category Grid</strong></td>
+</tr>
+</table>
+
+### Discover & Library
+
+<table>
+<tr>
+<td><img src="assets/mockups/05-discover-tab.png" width="220"/></td>
+<td><img src="assets/mockups/06-my-list-empty.png" width="220"/></td>
+<td><img src="assets/mockups/07-search-results.png" width="220"/></td>
+<td><img src="assets/mockups/14-my-list-populated.png" width="220"/></td>
+</tr>
+<tr>
 <td align="center"><strong>Discover</strong></td>
-<td align="center"><strong>My Library</strong></td>
+<td align="center"><strong>Library (Empty)</strong></td>
+<td align="center"><strong>Search Results</strong></td>
+<td align="center"><strong>Library (Saved)</strong></td>
 </tr>
+</table>
 
+### Anime Details
+
+<table>
 <tr>
-<td><img src="assets/mockups/05-scrolled-home.png" width="220"/></td>
-<td><img src="assets/mockups/06-anime-details.png" width="220"/></td>
-<td><img src="assets/mockups/07-episode-sheet-opened.png" width="220"/></td>
-<td><img src="assets/mockups/08-episode-opened.png" width="220"/></td>
+<td><img src="assets/mockups/08-anime-details-header.png" width="220"/></td>
+<td><img src="assets/mockups/09-anime-details-story.png" width="220"/></td>
+<td><img src="assets/mockups/10-anime-details-cast.png" width="220"/></td>
+<td><img src="assets/mockups/11-episode-sheet.png" width="220"/></td>
 </tr>
-
 <tr>
-<td align="center"><strong>Browse</strong></td>
-<td align="center"><strong>Anime Details</strong></td>
+<td align="center"><strong>Overview</strong></td>
+<td align="center"><strong>Synopsis & Details</strong></td>
+<td align="center"><strong>Cast & Characters</strong></td>
 <td align="center"><strong>Episode Sheet</strong></td>
-<td align="center"><strong>Video Player</strong></td>
+</tr>
+</table>
+
+### Video Streaming
+
+<table>
+<tr>
+<td><img src="assets/mockups/12-video-player-overlay.png" width="220"/></td>
+<td><img src="assets/mockups/13-video-player-active.png" width="220"/></td>
+</tr>
+<tr>
+<td align="center"><strong>Player Controls</strong></td>
+<td align="center"><strong>Active Video Playback</strong></td>
 </tr>
 </table>
 
